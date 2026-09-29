@@ -1,0 +1,280 @@
+/* ===================================================================
+   PRAXIS — Custom Component & Layout Styles (App.css)
+   =================================================================== */
+
+/* ===================================================================
+   1. SURFACE ELEVATIONS & GLASSMORPHISM
+   =================================================================== */
+
+.glass-panel {
+  background: rgba(14, 15, 20, 0.78);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--border-muted, #201d1a);
+}
+
+.glass-card {
+  background-color: #0e0f14;
+  border: 1px solid var(--border-card, #282420);
+  box-shadow:
+    0 20px 40px -15px rgba(0, 0, 0, 0.8),
+    0 0 20px rgba(249, 115, 22, 0.05);
+}
+
+.glass-card:hover {
+  border-color: rgba(249, 115, 22, 0.35);
+  box-shadow:
+    0 25px 50px -12px rgba(0, 0, 0, 0.9),
+    0 0 25px rgba(249, 115, 22, 0.12);
+}
+
+/* ===================================================================
+   2. FORM CONTROLS & BUTTONS
+   =================================================================== */
+
+.input-field {
+  background-color: #08090d;
+  border: 1px solid #282420;
+  color: var(--cream-100, #faf7f0);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.input-field:focus {
+  outline: none;
+  border-color: var(--accent-primary, #f97316);
+  box-shadow:
+    0 0 0 2px rgba(249, 115, 22, 0.25),
+    0 0 15px rgba(249, 115, 22, 0.15);
+}
+
+.btn-primary {
+  background-color: #f97316;
+  color: #ffffff;
+  transition: all 0.2s;
+  box-shadow: 0 4px 14px rgba(249, 115, 22, 0.35);
+}
+
+.btn-primary:hover {
+  background-color: #ea580c;
+  box-shadow: 0 6px 20px rgba(249, 115, 22, 0.45);
+}
+
+.form-panel {
+  display: none;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+
+.form-panel.active {
+  display: block;
+  opacity: 1;
+}
+
+.error-text {
+  color: #ef4444;
+  font-size: 0.75rem;
+  margin-top: 0.25rem;
+  display: none;
+}
+
+/* ===================================================================
+   3. TYPOGRAPHY & GRADIENTS
+   =================================================================== */
+
+.font-mono {
+  font-family: "JetBrains Mono", monospace;
+}
+
+.orange-gradient-text {
+  background: linear-gradient(135deg, #faf7f0 30%, #fb923c 75%, #ea580c 100%);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  padding-bottom: 0.12em; 
+  padding-right: 0.05em;  
+}
+
+.gold-gradient-text {
+  background: linear-gradient(135deg, #faf7f0 25%, #fbbf24 75%, #d97706 100%);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* ===================================================================
+   4. GLOW EFFECTS & AMBIENT BACKGROUNDS
+   =================================================================== */
+
+.orange-glow {
+  box-shadow: 0 0 20px rgba(249, 115, 22, 0.3);
+}
+
+.orange-glow-sm {
+  box-shadow: 0 0 10px rgba(249, 115, 22, 0.2);
+}
+
+.orange-text-glow {
+  text-shadow: 0 0 14px rgba(249, 115, 22, 0.6);
+}
+
+.agentic-canvas-wrap {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+
+.radial-glow {
+  background: radial-gradient(
+    circle at 50% 20%,
+    rgba(249, 115, 22, 0.16) 0%,
+    rgba(234, 88, 12, 0.04) 45%,
+    transparent 70%
+  );
+}
+
+.agentic-glow-center {
+  position: fixed;
+  top: 20%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 700px;
+  height: 700px;
+  background: radial-gradient(
+    circle,
+    rgba(249, 115, 22, 0.12) 0%,
+    rgba(234, 88, 12, 0.03) 45%,
+    transparent 70%
+  );
+  filter: blur(80px);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ===================================================================
+   5. NAVIGATION, TABS & SIDEBAR
+   =================================================================== */
+
+.sidebar {
+  width: 16rem; /* 256px */
+}
+
+.nav-link.nav-active,
+.nav-link.active {
+  background-color: rgba(249, 115, 22, 0.15) !important;
+  color: #fb923c !important;
+  border-right: 2px solid #f97316 !important;
+}
+
+.tab-active {
+  color: #f97316;
+  border-bottom: 2px solid #f97316;
+  background: rgba(249, 115, 22, 0.06);
+}
+
+.tab-inactive {
+  color: #a89f91;
+  border-bottom: 2px solid transparent;
+}
+
+.tab-inactive:hover {
+  color: #faf7f0;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+#toast-container:empty {
+  display: none;
+}
+
+.cmd-palette-overlay {
+  background-color: rgba(4, 4, 6, 0.85);
+  backdrop-filter: blur(10px);
+}
+
+/* ===================================================================
+   6. SCROLLBARS & UTILITIES
+   =================================================================== */
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: #070709;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #23201d;
+  border-radius: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #f97316;
+}
+
+/* ===================================================================
+   7. ANIMATIONS & KEYFRAMES
+   =================================================================== */
+
+@keyframes pulseGlow {
+  0%,
+  100% {
+    box-shadow: 0 0 12px rgba(249, 115, 22, 0.35);
+  }
+  50% {
+    box-shadow: 0 0 22px rgba(249, 115, 22, 0.65);
+  }
+}
+
+.animate-pulse-glow {
+  animation: pulseGlow 3s ease-in-out infinite;
+}
+
+@keyframes pulse-ring {
+  0% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(249, 115, 22, 0.7);
+  }
+  70% {
+    transform: scale(1);
+    box-shadow: 0 0 0 16px rgba(249, 115, 22, 0);
+  }
+  100% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(249, 115, 22, 0);
+  }
+}
+
+.pulse-ring {
+  animation: pulse-ring 2.5s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fadeInUp {
+  animation: fadeInUp 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.spinner {
+  animation: spin 1s linear infinite;
+}

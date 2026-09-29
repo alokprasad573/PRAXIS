@@ -10,7 +10,7 @@ const CTABanner = ({ isAuthenticated }) => {
           <div className="w-16 h-16 rounded-2xl bg-[#090a0e] border border-orange-500/30 flex items-center justify-center p-2.5 mx-auto mb-6 shadow-xl">
             <img src={logo} alt="logo" />
           </div>
-          <h2 className="text-3xl sm:text-4xl font-extrabold text-[#faf7f0] mb-4">
+          <h2 className="text-3xl sm:text-4xl font-extrabold text-cream-100 mb-4">
             Ready to Automate Your Engineering Workflows?
           </h2>
 
@@ -19,7 +19,7 @@ const CTABanner = ({ isAuthenticated }) => {
             PRAXIS orchestrate the heavy lifting.
           </p>
 
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 font-mono text-xs">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 font-mono text-sm">
             <Link
               to={isAuthenticated ? "/app" : "/auth"}
               className="bg-orange-600 hover:bg-orange-500 text-white font-bold px-8 py-3.5 rounded-xl transition-all shadow-[0_0_20px_rgba(249,115,22,0.4)] flex items-center gap-2"

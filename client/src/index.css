@@ -1,1 +1,99 @@
 @import "tailwindcss";
+
+/* ===================================================================
+   Global CSS Variables & Theming
+   =================================================================== */
+
+:root {
+  --bg-dark: #070709;
+  --bg-darker: #040405;
+  --bg-panel: #0e0f14;
+  --bg-card: #13141a;
+  --bg-hover: #181922;
+  --accent-primary: #f97316;
+  --accent-primary-hover: #ea580c;
+  --accent-glow: rgba(249, 115, 22, 0.35);
+  --border-subtle: rgba(249, 115, 22, 0.14);
+  --border-muted: #201d1a;
+  --border-card: #282420;
+  --cream-50: #fdfcf9;
+  --cream-100: #faf7f0;
+  --cream-200: #f5eedf;
+  --cream-300: #ede0ca;
+  --cream-400: #dfccaa;
+  --cream-500: #cbb288;
+  --cream-600: #b39567;
+}
+
+
+/* ===================================================================
+   PRAXIS — Tailwind v4 Theme Configuration
+   =================================================================== */
+
+@theme {
+  --font-sans: "Inter", sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
+
+  --color-brand-50: #fff7ed;
+  --color-brand-100: #ffedd5;
+  --color-brand-200: #fed7aa;
+  --color-brand-300: #fdba74;
+  --color-brand-400: #fb923c;
+  --color-brand-500: #f97316;
+  --color-brand-600: #ea580c;
+  --color-brand-700: #c2410c;
+  --color-brand-800: #9a3412;
+  --color-brand-900: #7c2d12;
+
+  --color-cream-50: #fdfcf9;
+  --color-cream-100: #faf7f0;
+  --color-cream-200: #f5eedf;
+  --color-cream-300: #ede0ca;
+  --color-cream-400: #dfccaa;
+  --color-cream-500: #cbb288;
+  --color-cream-600: #b39567;
+
+  --color-dark-base: #070709;
+  --color-dark-card: #0e0f14;
+  --color-dark-panel: #13141a;
+  --color-dark-border: #23201d;
+}
+
+/* Global resets & typography */
+html {
+  background-color: #070709;
+  color-scheme: dark;
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: "Inter", sans-serif;
+  background-color: #070709;
+  color: #faf7f0;
+  overflow-x: hidden;
+}
+
+::selection {
+  background-color: rgba(249, 115, 22, 0.35);
+  color: #fff7ed;
+}
+
+/* Global Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #070709;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #242220;
+  border-radius: 4px;
+  border: 1px solid rgba(249, 115, 22, 0.08);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #ea580c;
+}

@@ -13,7 +13,7 @@ const OKFSection = () => {
               <ShieldCheck className="w-3.5 h-3.5" />
               Open Knowledge Format (OKF)
             </div>
-            <h2 className="text-3xl font-extrabold text-[#faf7f0] mb-4">
+            <h2 className="text-3xl font-extrabold text-cream-100 mb-4">
               Deterministic Code Guardrails That Never Fail
             </h2>
             <p className="text-sm text-[#b8ab97] leading-relaxed mb-6 font-sans">
@@ -39,7 +39,7 @@ const OKFSection = () => {
               <span className="text-orange-400 font-bold">database_safety.okf.md</span>
               <span>Markdown Spec</span>
             </div>
-            <div className="p-5 text-[#faf7f0] overflow-x-auto">
+            <div className="p-5 text-cream-100 overflow-x-auto">
               <pre className="font-mono text-xs text-[#d6c5a8] leading-relaxed whitespace-pre-wrap">
                 {markdownText}
               </pre>
