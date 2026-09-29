@@ -1,0 +1,222 @@
+/* ================================
+   PRAXIS Landing Navbar
+================================ */
+
+.landing-navbar {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  width: 100%;
+  background: rgba(7, 7, 9, 0.88);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+.landing-navbar__inner {
+  width: 100%;
+  max-width: 1280px;
+  min-height: 76px;
+  margin: 0 auto;
+  padding: 0 32px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 32px;
+}
+
+/* Brand / Logo */
+
+.landing-navbar__brand {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  text-decoration: none;
+}
+
+.landing-navbar__brand img {
+  display: block;
+  width: 148px;
+  height: auto;
+  object-fit: contain;
+}
+
+/* Navigation Links */
+
+.landing-navbar__links {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 28px;
+}
+
+.landing-navbar__links a {
+  color: #b8ab97;
+  font-size: 13px;
+  font-weight: 500;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: color 180ms ease;
+}
+
+.landing-navbar__links a:hover {
+  color: #fb923c;
+}
+
+/* Action Buttons */
+
+.landing-navbar__actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 20px;
+  flex-shrink: 0;
+}
+
+.landing-navbar__signin {
+  color: #d6c5a8;
+  font-size: 13px;
+  font-weight: 500;
+  text-decoration: none;
+  transition: color 180ms ease;
+}
+
+.landing-navbar__signin:hover {
+  color: #ffffff;
+}
+
+.landing-navbar__cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+
+  padding: 10px 16px;
+  border: 1px solid rgba(249, 115, 22, 0.45);
+  border-radius: 9px;
+
+  background: rgba(234, 88, 12, 0.12);
+  color: #fb923c;
+
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+
+  transition:
+    background 180ms ease,
+    border-color 180ms ease,
+    color 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.landing-navbar__cta:hover {
+  background: #ea580c;
+  border-color: #fb923c;
+  color: #ffffff;
+  box-shadow: 0 0 20px rgba(249, 115, 22, 0.2);
+}
+
+.landing-navbar__cta span {
+  font-size: 17px;
+  line-height: 1;
+  transition: transform 180ms ease;
+}
+
+.landing-navbar__cta:hover span {
+  transform: translateX(3px);
+}
+
+/* Tablet */
+
+@media (max-width: 1024px) {
+  .landing-navbar__inner {
+    gap: 20px;
+    padding: 0 24px;
+  }
+
+  .landing-navbar__links {
+    gap: 16px;
+  }
+
+  .landing-navbar__links a {
+    font-size: 12px;
+  }
+
+  .landing-navbar__brand img {
+    width: 125px;
+  }
+
+  .landing-navbar__actions {
+    gap: 14px;
+  }
+}
+
+/* Mobile */
+
+@media (max-width: 768px) {
+  .landing-navbar__inner {
+    min-height: 68px;
+    padding: 0 18px;
+    gap: 16px;
+  }
+
+  .landing-navbar__brand img {
+    width: 120px;
+  }
+
+  .landing-navbar__links {
+    display: none;
+  }
+
+  .landing-navbar__actions {
+    gap: 14px;
+  }
+
+  .landing-navbar__signin {
+    font-size: 12px;
+  }
+
+  .landing-navbar__cta {
+    padding: 9px 12px;
+    font-size: 12px;
+  }
+}
+
+/* Small Mobile */
+
+@media (max-width: 380px) {
+  .landing-navbar__inner {
+    padding: 0 12px;
+    gap: 10px;
+  }
+
+  .landing-navbar__brand img {
+    width: 100px;
+  }
+
+  .landing-navbar__actions {
+    gap: 10px;
+  }
+
+  .landing-navbar__cta {
+    padding: 8px 10px;
+  }
+}
+
+
+
+.orange-gradient-text {
+  background: linear-gradient(
+    135deg,
+    #faf7f0 30%,
+    #fb923c 70%,
+    #ea580c 100%
+  );
+
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}

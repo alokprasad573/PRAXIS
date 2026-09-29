@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none">
+  <defs>
+    <!-- Top-Right Facet (Vivid Orange to Golden Sunburst) -->
+    <linearGradient id="praxis-g1" x1="24" y1="3" x2="43" y2="24" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#ff7a00"/>
+      <stop offset="100%" stop-color="#fbbf24"/>
+    </linearGradient>
+
+    <!-- Bottom-Right Facet (Golden Sunburst to Crimson Rose) -->
+    <linearGradient id="praxis-g2" x1="43" y1="24" x2="24" y2="45" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#f59e0b"/>
+      <stop offset="100%" stop-color="#f43f5e"/>
+    </linearGradient>
+
+    <!-- Left Facet (Deep Coral to Electric Hot Orange) -->
+    <linearGradient id="praxis-g3" x1="5" y1="24" x2="24" y2="3" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#ea580c"/>
+      <stop offset="60%" stop-color="#ff5400"/>
+      <stop offset="100%" stop-color="#ff7a00"/>
+    </linearGradient>
+
+    <!-- Inner 'P' Stylized Prism Gradient -->
+    <linearGradient id="praxis-p-grad" x1="14" y1="12" x2="34" y2="36" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="50%" stop-color="#fff1e6"/>
+      <stop offset="100%" stop-color="#fb923c"/>
+    </linearGradient>
+
+    <!-- Glow Filter -->
+    <filter id="praxis-glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="1.5" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+  </defs>
+
+  <!-- Outer Isometric 3D Hexagon Facets -->
+  <!-- Top Right Prism Facet -->
+  <path d="M24 3.5L42 13.8V24L24 24V3.5Z" fill="url(#praxis-g1)"/>
+  
+  <!-- Bottom Right Prism Facet -->
+  <path d="M24 24L42 24V34.2L24 44.5V24Z" fill="url(#praxis-g2)"/>
+  
+  <!-- Left Half Prism Facet -->
+  <path d="M24 3.5L24 44.5L6 34.2V13.8L24 3.5Z" fill="url(#praxis-g3)"/>
+
+  <!-- Inner Dark Obsidian Inset Shield -->
+  <polygon points="24,9 37,16.5 37,31.5 24,39 11,31.5 11,16.5" fill="#090a0e" fill-opacity="0.92"/>
+
+  <!-- Circuit Micro-traces -->
+  <path d="M18 16L24 13L30 16.5" stroke="#f97316" stroke-width="0.8" stroke-dasharray="1 1" opacity="0.6"/>
+  <path d="M18 32L24 35L30 31.5" stroke="#f97316" stroke-width="0.8" stroke-dasharray="1 1" opacity="0.6"/>
+
+  <!-- Stylized Geometric Futuristic 'P' (PRAXIS Orchestrator Core) -->
+  <path d="M17 15H27C29.7614 15 32 17.2386 32 20C32 22.7614 29.7614 25 27 25H21.5V33H17V15ZM21.5 19V21.5H26.8C27.4627 21.5 28 20.9627 28 20.3C28 19.6373 27.4627 19 26.8 19H21.5Z" fill="url(#praxis-p-grad)" filter="url(#praxis-glow)"/>
+
+  <!-- Vibrant Cybernetic Node Dots -->
+  <circle cx="32" cy="20" r="2" fill="#06b6d4" filter="url(#praxis-glow)"/>
+  <circle cx="24" cy="3.5" r="1.5" fill="#fbbf24"/>
+  <circle cx="42" cy="24" r="1.5" fill="#f43f5e"/>
+  <circle cx="6" cy="24" r="1.5" fill="#ea580c"/>
+  <circle cx="24" cy="44.5" r="1.5" fill="#f97316"/>
+</svg>
+
