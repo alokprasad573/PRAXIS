@@ -7,14 +7,14 @@ const WorkflowPipeline = () => {
       id="pipeline"
       className="relative z-10 py-12 sm:py-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto"
     >
-      <div className="bg-[#0e0f14] border border-[#201d1a] hover:border-orange-500/30 rounded-2xl p-6 sm:p-8 shadow-[0_20px_50px_rgba(0,0,0,0.8),0_0_30px_rgba(249,115,22,0.08)] max-w-8xl mx-auto text-left transition-all">
+      <div className="bg-dark-card border border-[#201d1a] hover:border-orange-500/30 rounded-2xl p-6 sm:p-8 shadow-[0_20px_50px_rgba(0,0,0,0.8),0_0_30px_rgba(249,115,22,0.08)] max-w-8xl mx-auto text-left transition-all">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 border-b border-[#201d1a] pb-4">
           <div>
             <span className="text-[10px] font-mono font-bold text-orange-400 uppercase tracking-widest">
               Execution Engine
             </span>
-            <h3 className="text-lg font-bold text-[#faf7f0] font-mono mt-0.5">
+            <h3 className="text-lg font-bold text-cream-100 font-mono mt-0.5">
               The PRAXIS Multi-Agent Workflow Pipeline
             </h3>
           </div>

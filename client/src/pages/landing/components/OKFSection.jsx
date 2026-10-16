@@ -4,7 +4,7 @@ import { policies, markdownText } from "../../../utils/data";
 const OKFSection = () => {
   return (
     <section id="okf" className="py-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-      <div className="bg-[#0e0f14] border border-[#201d1a] rounded-2xl p-8 sm:p-12 shadow-2xl">
+      <div className="bg-dark-card border border-[#201d1a] rounded-2xl p-8 sm:p-12 shadow-2xl">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
           
           {/* Left Content */}
@@ -34,7 +34,7 @@ const OKFSection = () => {
           </div>
 
           {/* Right Code Sample Preview in Markdown Format */}
-          <div className="bg-[#070709] border border-[#23201d] rounded-xl overflow-hidden font-mono text-xs shadow-xl">
+          <div className="bg-dark-base border border-dark-border rounded-xl overflow-hidden font-mono text-xs shadow-xl">
             <div className="px-4 py-3 bg-[#121319] border-b border-[#201d1a] flex items-center justify-between text-[#8a7f70]">
               <span className="text-orange-400 font-bold">database_safety.okf.md</span>
               <span>Markdown Spec</span>

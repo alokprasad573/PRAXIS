@@ -11,7 +11,7 @@ import FloatingImagesCanvas from "../../ui/FloatingImagesCanvas";
 
 
 const LandingPage = () => {
-  const [isAuthenticated, setAuthenticated] = React.useState(true)
+  const [isAuthenticated, setAuthenticated] = React.useState(false);
 
 
   return (
