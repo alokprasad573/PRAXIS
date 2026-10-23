@@ -5,12 +5,12 @@ const WorkNodeGrid = ({ step }) => {
 
   return (
     <div
-      className={`bg-[#070709] rounded-xl p-3 flex flex-col items-center text-center group transition-colors ${
+      className={`bg-dark-base rounded-xl p-3 flex flex-col items-center text-center group transition-colors ${
         isEmerald
           ? "border border-emerald-500/30 hover:border-emerald-500/60"
           : isHighlight
           ? "border border-orange-500/40 shadow-[0_0_12px_rgba(249,115,22,0.15)]"
-          : "border border-[#23201d] hover:border-orange-500/40"
+          : "border border-dark-border hover:border-orange-500/40"
       }`}
     >
       <div
@@ -24,7 +24,7 @@ const WorkNodeGrid = ({ step }) => {
       >
         <IconComponent className="w-4 h-4" />
       </div>
-      <span className={`font-bold ${isEmerald ? "text-emerald-300" : isHighlight ? "text-orange-300" : "text-[#faf7f0]"}`}>
+      <span className={`font-bold ${isEmerald ? "text-emerald-300" : isHighlight ? "text-orange-300" : "text-cream-100"}`}>
         {step.id}. {step.title}
       </span>
       <span className={`text-[10px] mt-0.5 ${isEmerald ? "text-emerald-400/80" : isHighlight ? "text-orange-400/80" : "text-[#8a7f70]"}`}>

@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { PlusCircle, X, Play, Loader } from "lucide-react";
 
-const NewWorkflowModal = ({ isOpen, onClose, onLaunchWorkflow }) => {
+const NewWorkflowModal = ({ isOpen, onClose, onLaunchWorkflow, projects = [] }) => {
   const [task, setTask] = useState("");
-  const [project, setProject] = useState("payments-api");
+  const [project, setProject] = useState(projects[0]?.name || "");
   const [branch, setBranch] = useState("main");
   const [executionMode, setExecutionMode] = useState("parallel");
   const [approvalPolicy, setApprovalPolicy] = useState("high-risk-only");
@@ -21,7 +21,7 @@ const NewWorkflowModal = ({ isOpen, onClose, onLaunchWorkflow }) => {
       const newWf = {
         id: newId,
         name: task.length > 50 ? task.slice(0, 47) + "..." : task,
-        projectId: project === "payments-api" ? "proj-001" : (project === "ecommerce-frontend" ? "proj-002" : "proj-003"),
+        projectId: project,
         project,
         branch,
         status: "running",
@@ -48,12 +48,12 @@ const NewWorkflowModal = ({ isOpen, onClose, onLaunchWorkflow }) => {
       onClick={(e) => {
         if (e.target.id === "modal-new-workflow") onClose();
       }}
-      className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[100] flex items-center justify-center p-4 transition-opacity"
+      className="fixed inset-0 bg-black/80 backdrop-blur-sm z-100 flex items-center justify-center p-4 transition-opacity"
     >
-      <div className="w-full max-w-lg bg-[#0e0f14] border border-[#2a2520] rounded-xl shadow-[0_20px_50px_rgba(0,0,0,0.8)] overflow-hidden animate-fadeInUp">
+      <div className="w-full max-w-lg bg-dark-card border border-[#2a2520] rounded-xl shadow-[0_20px_50px_rgba(0,0,0,0.8)] overflow-hidden animate-fadeInUp">
         <div className="flex items-center justify-between p-5 border-b border-[#201d1a] bg-[#12131a]">
           <div>
-            <h2 className="text-base font-bold text-[#faf7f0] flex items-center gap-2">
+            <h2 className="text-base font-bold text-cream-100 flex items-center gap-2">
               <PlusCircle className="w-4 h-4 text-orange-500" />
               Launch New Workflow
             </h2>
@@ -80,7 +80,7 @@ const NewWorkflowModal = ({ isOpen, onClose, onLaunchWorkflow }) => {
               required
               value={task}
               onChange={(e) => setTask(e.target.value)}
-              className="w-full bg-[#070709] border border-[#282420] rounded-lg p-3 text-sm text-[#faf7f0] placeholder-[#6b645b] focus:ring-1 focus:ring-orange-500 focus:border-orange-500 font-mono h-24 resize-none transition-colors outline-none"
+              className="w-full bg-dark-base border border-[#282420] rounded-lg p-3 text-sm text-cream-100 placeholder-[#6b645b] focus:ring-1 focus:ring-orange-500 focus:border-orange-500 font-mono h-24 resize-none transition-colors outline-none"
               placeholder="e.g. Improve unit test coverage to 80% for payments-api and audit security vulnerabilities..."
             />
           </div>
@@ -94,11 +94,17 @@ const NewWorkflowModal = ({ isOpen, onClose, onLaunchWorkflow }) => {
                 id="wf-project"
                 value={project}
                 onChange={(e) => setProject(e.target.value)}
-                className="w-full bg-[#070709] border border-[#282420] rounded-lg p-2 text-xs text-[#faf7f0] focus:ring-1 focus:ring-orange-500 focus:border-orange-500 font-mono outline-none"
+                className="w-full bg-dark-base border border-[#282420] rounded-lg p-2 text-xs text-cream-100 focus:ring-1 focus:ring-orange-500 focus:border-orange-500 font-mono outline-none"
               >
-                <option value="payments-api">payments-api</option>
-                <option value="ecommerce-frontend">ecommerce-frontend</option>
-                <option value="auth-service">auth-service</option>
+                {projects.length === 0 ? (
+                  <option value="">No connected projects</option>
+                ) : (
+                  projects.map((p) => (
+                    <option key={p.id || p._id} value={p.name}>
+                      {p.name}
+                    </option>
+                  ))
+                )}
               </select>
             </div>
             <div>
@@ -109,7 +115,7 @@ const NewWorkflowModal = ({ isOpen, onClose, onLaunchWorkflow }) => {
                 id="wf-branch"
                 value={branch}
                 onChange={(e) => setBranch(e.target.value)}
-                className="w-full bg-[#070709] border border-[#282420] rounded-lg p-2 text-xs text-[#faf7f0] focus:ring-1 focus:ring-orange-500 focus:border-orange-500 font-mono outline-none"
+                className="w-full bg-dark-base border border-[#282420] rounded-lg p-2 text-xs text-cream-100 focus:ring-1 focus:ring-orange-500 focus:border-orange-500 font-mono outline-none"
               >
                 <option value="main">main</option>
                 <option value="develop">develop</option>
@@ -161,7 +167,7 @@ const NewWorkflowModal = ({ isOpen, onClose, onLaunchWorkflow }) => {
               id="wf-policy"
               value={approvalPolicy}
               onChange={(e) => setApprovalPolicy(e.target.value)}
-              className="w-full bg-[#070709] border border-[#282420] rounded-lg p-2 text-xs text-[#faf7f0] focus:ring-1 focus:ring-orange-500 focus:border-orange-500 font-mono outline-none"
+              className="w-full bg-dark-base border border-[#282420] rounded-lg p-2 text-xs text-cream-100 focus:ring-1 focus:ring-orange-500 focus:border-orange-500 font-mono outline-none"
             >
               <option value="high-risk-only">
                 High Risk Only (Recommended Gate)
@@ -175,7 +181,7 @@ const NewWorkflowModal = ({ isOpen, onClose, onLaunchWorkflow }) => {
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 py-2 px-4 text-xs font-mono border border-[#282420] text-[#b8ab97] rounded-lg hover:bg-[#181920] hover:text-[#faf7f0] transition-colors cursor-pointer"
+              className="flex-1 py-2 px-4 text-xs font-mono border border-[#282420] text-[#b8ab97] rounded-lg hover:bg-[#181920] hover:text-cream-100 transition-colors cursor-pointer"
             >
               Cancel
             </button>

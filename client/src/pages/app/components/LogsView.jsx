@@ -114,7 +114,7 @@ const LogsView = ({ logs = [], onToast }) => {
     <div className="space-y-6 animate-fadeInUp">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-extrabold text-[#faf7f0] tracking-tight">
+          <h1 className="text-3xl font-extrabold text-cream-100 tracking-tight">
             Real-Time Execution Logs
           </h1>
           <p className="text-xs text-[#b8ab97] font-mono mt-1">
@@ -125,7 +125,7 @@ const LogsView = ({ logs = [], onToast }) => {
           <button
             type="button"
             onClick={() => setIsLiveMode(!isLiveMode)}
-            className="px-3.5 py-1.5 rounded-lg border border-[#282420] text-xs font-mono font-bold text-[#faf7f0] hover:bg-[#14151b] transition-all flex items-center gap-2 cursor-pointer"
+            className="px-3.5 py-1.5 rounded-lg border border-[#282420] text-xs font-mono font-bold text-cream-100 hover:bg-[#14151b] transition-all flex items-center gap-2 cursor-pointer"
           >
             <div
               className={`w-2 h-2 rounded-full ${
@@ -136,7 +136,7 @@ const LogsView = ({ logs = [], onToast }) => {
             />
             {isLiveMode ? "Live Mode Active" : "Live Mode"}
           </button>
-          <div className="flex bg-[#0e0f14] p-1 rounded-lg border border-[#201d1a]">
+          <div className="flex bg-dark-card p-1 rounded-lg border border-[#201d1a]">
             <button
               type="button"
               onClick={() => setCurrentViewMode("table")}
@@ -165,20 +165,20 @@ const LogsView = ({ logs = [], onToast }) => {
 
       {/* Filters Bar */}
       <div className="flex flex-wrap items-center gap-3 font-mono text-xs">
-        <div className="relative flex-1 min-w-[200px]">
+        <div className="relative flex-1 min-w-50">
           <Search className="absolute left-3 top-2.5 w-3.5 h-3.5 text-orange-400" />
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Filter log stream..."
-            className="w-full bg-[#0e0f14] border border-[#201d1a] text-[#faf7f0] rounded-lg pl-9 pr-3 py-2 text-xs focus:ring-1 focus:ring-orange-500 outline-none"
+            className="w-full bg-dark-card border border-[#201d1a] text-cream-100 rounded-lg pl-9 pr-3 py-2 text-xs focus:ring-1 focus:ring-orange-500 outline-none"
           />
         </div>
         <select
           value={agentFilter}
           onChange={(e) => setAgentFilter(e.target.value)}
-          className="bg-[#0e0f14] border border-[#201d1a] text-[#faf7f0] rounded-lg px-3 py-2 text-xs outline-none"
+          className="bg-dark-card border border-[#201d1a] text-cream-100 rounded-lg px-3 py-2 text-xs outline-none"
         >
           <option>All Agents</option>
           <option>Unit Test Agent</option>
@@ -188,7 +188,7 @@ const LogsView = ({ logs = [], onToast }) => {
         <select
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value)}
-          className="bg-[#0e0f14] border border-[#201d1a] text-[#faf7f0] rounded-lg px-3 py-2 text-xs outline-none"
+          className="bg-dark-card border border-[#201d1a] text-cream-100 rounded-lg px-3 py-2 text-xs outline-none"
         >
           <option>All Statuses</option>
           <option>Success</option>
@@ -200,9 +200,9 @@ const LogsView = ({ logs = [], onToast }) => {
 
       {/* View Mode Container */}
       {currentViewMode === "table" ? (
-        <div className="bg-[#0e0f14] border border-[#201d1a] rounded-xl overflow-hidden shadow-xl">
+        <div className="bg-dark-card border border-[#201d1a] rounded-xl overflow-hidden shadow-xl">
           <table className="w-full text-left text-xs whitespace-nowrap">
-            <thead className="bg-[#070709] text-[#a89f91] font-mono uppercase tracking-wider border-b border-[#201d1a]">
+            <thead className="bg-dark-base text-[#a89f91] font-mono uppercase tracking-wider border-b border-[#201d1a]">
               <tr>
                 <th className="px-4 py-3 font-semibold">Timestamp</th>
                 <th className="px-4 py-3 font-semibold">Workflow</th>
@@ -214,7 +214,7 @@ const LogsView = ({ logs = [], onToast }) => {
                 <th className="px-4 py-3 font-semibold text-right">Cost</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#201d1a] text-[#faf7f0] font-mono">
+            <tbody className="divide-y divide-[#201d1a] text-cream-100 font-mono">
               {filteredLogs.map((l, i) => (
                 <tr key={l.id || i} className="hover:bg-[#14151b] transition-colors">
                   <td className="px-4 py-3 text-[#8a7f70]">{l.timestamp}</td>
@@ -247,12 +247,12 @@ const LogsView = ({ logs = [], onToast }) => {
           </table>
         </div>
       ) : (
-        <div className="terminal-bg bg-[#070709] rounded-xl p-6 font-mono text-xs overflow-y-auto max-h-[550px] custom-scrollbar border border-[#201d1a] shadow-2xl">
+        <div className="terminal-bg bg-dark-base rounded-xl p-6 font-mono text-xs overflow-y-auto max-h-137.5 custom-scrollbar border border-[#201d1a] shadow-2xl">
           <div className="space-y-2.5">
             {filteredLogs.map((l, i) => (
               <div
                 key={l.id || i}
-                className="flex items-start gap-3 hover:bg-white/[0.03] p-1.5 rounded transition-colors"
+                className="flex items-start gap-3 hover:bg-white/3 p-1.5 rounded transition-colors"
               >
                 <span className="text-[#8a7f70] select-none shrink-0">
                   [{l.timestamp}]

@@ -16,13 +16,13 @@ const OverviewView = ({
   workflows = [],
   logs = [],
   kpis = {
-    activeWorkflows: 3,
-    runningAgents: 4,
-    completedTasks: 1204,
-    tokensUsed: "4.2M",
-    estimatedCost: "$12.84",
-    avgDuration: "7m 22s",
-    successRate: "94.2%",
+    activeWorkflows: 0,
+    runningAgents: 0,
+    completedTasks: 0,
+    tokensUsed: "0k",
+    estimatedCost: "$0.00",
+    avgDuration: "0s",
+    successRate: "100%",
   },
   onNavigate,
   onOpenNewWorkflow,
@@ -57,7 +57,7 @@ const OverviewView = ({
         );
       default:
         return (
-          <span className="px-2 py-0.5 rounded text-[10px] bg-[#181920] text-[#faf7f0] font-mono">
+          <span className="px-2 py-0.5 rounded text-[10px] bg-[#181920] text-cream-100 font-mono">
             {status || "Active"}
           </span>
         );
@@ -69,7 +69,7 @@ const OverviewView = ({
       {/* Top Hero Section */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-extrabold text-[#faf7f0] tracking-tight">
+          <h1 className="text-3xl font-extrabold text-cream-100 tracking-tight">
             Dashboard
           </h1>
           <p className="text-xs text-[#b8ab97] font-mono mt-1">
@@ -80,7 +80,7 @@ const OverviewView = ({
           <button
             type="button"
             onClick={() => onNavigate("workflows")}
-            className="px-3.5 py-2 text-xs font-mono border border-[#282420] text-[#d6c5a8] hover:text-[#faf7f0] hover:border-orange-500/40 rounded-lg bg-[#0e0f14] transition-colors flex items-center gap-1.5 cursor-pointer"
+            className="px-3.5 py-2 text-xs font-mono border border-[#282420] text-[#d6c5a8] hover:text-cream-100 hover:border-orange-500/40 rounded-lg bg-dark-card transition-colors flex items-center gap-1.5 cursor-pointer"
           >
             <GitMerge className="w-3.5 h-3.5 text-orange-400" /> View All Workflows
           </button>
@@ -96,19 +96,19 @@ const OverviewView = ({
 
       {/* KPI Cards Grid (7 Cards) */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="bg-[#0e0f14] border border-[#201d1a] rounded-xl p-4 flex flex-col hover:border-orange-500/30 transition-colors">
+        <div className="bg-dark-card border border-[#201d1a] rounded-xl p-4 flex flex-col hover:border-orange-500/30 transition-colors">
           <div className="flex items-center justify-between mb-2">
             <span className="text-[11px] text-[#a89f91] font-mono uppercase tracking-wider">
               Active Workflows
             </span>
             <GitMerge className="w-4 h-4 text-orange-400" />
           </div>
-          <span className="text-2xl font-bold font-mono text-[#faf7f0]">
+          <span className="text-2xl font-bold font-mono text-cream-100">
             {kpis.activeWorkflows || 3}
           </span>
         </div>
 
-        <div className="bg-[#0e0f14] border border-[#201d1a] rounded-xl p-4 flex flex-col hover:border-orange-500/30 transition-colors">
+        <div className="bg-dark-card border border-[#201d1a] rounded-xl p-4 flex flex-col hover:border-orange-500/30 transition-colors">
           <div className="flex items-center justify-between mb-2">
             <span className="text-[11px] text-[#a89f91] font-mono uppercase tracking-wider">
               Running Agents
@@ -118,60 +118,60 @@ const OverviewView = ({
               <span className="absolute -top-1 -right-1 w-2 h-2 bg-orange-400 rounded-full animate-pulse" />
             </div>
           </div>
-          <span className="text-2xl font-bold font-mono text-[#faf7f0]">
+          <span className="text-2xl font-bold font-mono text-cream-100">
             {kpis.runningAgents || 4}
           </span>
         </div>
 
-        <div className="bg-[#0e0f14] border border-[#201d1a] rounded-xl p-4 flex flex-col hover:border-orange-500/30 transition-colors">
+        <div className="bg-dark-card border border-[#201d1a] rounded-xl p-4 flex flex-col hover:border-orange-500/30 transition-colors">
           <div className="flex items-center justify-between mb-2">
             <span className="text-[11px] text-[#a89f91] font-mono uppercase tracking-wider">
               Completed Tasks
             </span>
             <CheckCircle className="w-4 h-4 text-emerald-400" />
           </div>
-          <span className="text-2xl font-bold font-mono text-[#faf7f0]">
+          <span className="text-2xl font-bold font-mono text-cream-100">
             {kpis.completedTasks ? kpis.completedTasks.toLocaleString() : "1,204"}
           </span>
         </div>
 
-        <div className="bg-[#0e0f14] border border-[#201d1a] rounded-xl p-4 flex flex-col hover:border-orange-500/30 transition-colors">
+        <div className="bg-dark-card border border-[#201d1a] rounded-xl p-4 flex flex-col hover:border-orange-500/30 transition-colors">
           <div className="flex items-center justify-between mb-2">
             <span className="text-[11px] text-[#a89f91] font-mono uppercase tracking-wider">
               Tokens Used
             </span>
             <Zap className="w-4 h-4 text-amber-400" />
           </div>
-          <span className="text-2xl font-bold font-mono text-[#faf7f0]">
+          <span className="text-2xl font-bold font-mono text-cream-100">
             {kpis.tokensUsed || "4.2M"}
           </span>
         </div>
 
-        <div className="bg-[#0e0f14] border border-[#201d1a] rounded-xl p-4 flex flex-col hover:border-orange-500/30 transition-colors">
+        <div className="bg-dark-card border border-[#201d1a] rounded-xl p-4 flex flex-col hover:border-orange-500/30 transition-colors">
           <div className="flex items-center justify-between mb-2">
             <span className="text-[11px] text-[#a89f91] font-mono uppercase tracking-wider">
               Est. API Cost
             </span>
             <DollarSign className="w-4 h-4 text-[#d6c5a8]" />
           </div>
-          <span className="text-2xl font-bold font-mono text-[#faf7f0]">
+          <span className="text-2xl font-bold font-mono text-cream-100">
             {kpis.estimatedCost || "$12.84"}
           </span>
         </div>
 
-        <div className="bg-[#0e0f14] border border-[#201d1a] rounded-xl p-4 flex flex-col hover:border-orange-500/30 transition-colors">
+        <div className="bg-dark-card border border-[#201d1a] rounded-xl p-4 flex flex-col hover:border-orange-500/30 transition-colors">
           <div className="flex items-center justify-between mb-2">
             <span className="text-[11px] text-[#a89f91] font-mono uppercase tracking-wider">
               Avg Duration
             </span>
             <Clock className="w-4 h-4 text-orange-300" />
           </div>
-          <span className="text-2xl font-bold font-mono text-[#faf7f0]">
+          <span className="text-2xl font-bold font-mono text-cream-100">
             {kpis.avgDuration || "7m 22s"}
           </span>
         </div>
 
-        <div className="bg-[#0e0f14] border border-[#201d1a] rounded-xl p-4 flex flex-col col-span-2 md:col-span-2 hover:border-orange-500/30 transition-colors">
+        <div className="bg-dark-card border border-[#201d1a] rounded-xl p-4 flex flex-col col-span-2 md:col-span-2 hover:border-orange-500/30 transition-colors">
           <div className="flex items-center justify-between mb-2">
             <span className="text-[11px] text-[#a89f91] font-mono uppercase tracking-wider">
               Autonomous Success Rate
@@ -198,7 +198,7 @@ const OverviewView = ({
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="col-span-1 lg:col-span-2">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-base font-bold font-mono text-[#faf7f0] uppercase tracking-wider flex items-center gap-2">
+            <h2 className="text-base font-bold font-mono text-cream-100 uppercase tracking-wider flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-orange-500 animate-pulse" />
               Live Workflow Monitor
             </h2>
@@ -212,6 +212,11 @@ const OverviewView = ({
           </div>
 
           <div className="space-y-4">
+            {workflows.length === 0 ? (
+              <div className="py-8 text-center text-xs text-[#8a7f70] bg-dark-card border border-dashed border-[#201d1a] rounded-xl font-mono">
+                No active workflows running. Click "New Workflow" to launch an orchestration pipeline.
+              </div>
+            ) : null}
             {workflows.slice(0, 3).map((wf) => {
               const isRunning =
                 wf.status === "running" || wf.status === "in_progress";
@@ -220,7 +225,7 @@ const OverviewView = ({
                 <div
                   key={wf.id}
                   onClick={() => onNavigate("workflow-detail", wf.id)}
-                  className="bg-[#0e0f14] border border-[#201d1a] rounded-xl p-5 hover:border-orange-500/40 cursor-pointer transition-all hover:shadow-[0_4px_20px_rgba(249,115,22,0.1)] block group"
+                  className="bg-dark-card border border-[#201d1a] rounded-xl p-5 hover:border-orange-500/40 cursor-pointer transition-all hover:shadow-[0_4px_20px_rgba(249,115,22,0.1)] block group"
                 >
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-2">
@@ -238,7 +243,7 @@ const OverviewView = ({
                     <div>{getStatusBadge(wf.status)}</div>
                   </div>
 
-                  <h3 className="text-sm font-semibold text-[#faf7f0] group-hover:text-orange-300 transition-colors mb-2">
+                  <h3 className="text-sm font-semibold text-cream-100 group-hover:text-orange-300 transition-colors mb-2">
                     {wf.name || "Workflow Task"}
                   </h3>
 
@@ -246,12 +251,12 @@ const OverviewView = ({
                     <span>
                       {wf.project || "payments-api"} / {wf.branch || "main"}
                     </span>
-                    <span className="text-[#f5eedf] font-semibold">
+                    <span className="text-cream-200 font-semibold">
                       {wf.progress || 0}% complete
                     </span>
                   </div>
 
-                  <div className="bg-[#181920] rounded-full h-1.5 mb-4 overflow-hidden border border-[#23201d]">
+                  <div className="bg-[#181920] rounded-full h-1.5 mb-4 overflow-hidden border border-dark-border">
                     <div
                       className={`h-1.5 rounded-full transition-all duration-1000 ${
                         isRunning
@@ -264,7 +269,7 @@ const OverviewView = ({
 
                   {/* Pipeline Status Dots */}
                   <div className="flex items-center gap-1.5 text-[10px] font-mono text-[#a89f91] overflow-hidden">
-                    <span className="text-[#faf7f0]">Orchestrator</span>
+                    <span className="text-cream-100">Orchestrator</span>
                     <ArrowRight className="w-3 h-3 text-[#524c45]" />
                     <div
                       className="w-4 h-4 bg-emerald-500/20 rounded-full flex items-center justify-center border border-emerald-500/30 text-emerald-400"
@@ -309,11 +314,11 @@ const OverviewView = ({
 
         {/* Recent Activity Feed */}
         <div className="col-span-1">
-          <h2 className="text-base font-bold font-mono text-[#faf7f0] uppercase tracking-wider mb-4 flex items-center gap-2">
+          <h2 className="text-base font-bold font-mono text-cream-100 uppercase tracking-wider mb-4 flex items-center gap-2">
             <Activity className="w-4 h-4 text-orange-500" />
             Activity Trace
           </h2>
-          <div className="bg-[#0e0f14] border border-[#201d1a] rounded-xl p-4 h-[420px] overflow-y-auto custom-scrollbar">
+          <div className="bg-dark-card border border-[#201d1a] rounded-xl p-4 h-105 overflow-y-auto custom-scrollbar">
             <div className="relative border-l border-[#201d1a] ml-3 space-y-6 pb-4">
               {logs.slice(0, 5).map((log) => {
                 const dotBorder =
@@ -326,7 +331,7 @@ const OverviewView = ({
                 return (
                   <div key={log.id} className="relative pl-6">
                     <span
-                      className={`absolute -left-1.5 top-1.5 w-3 h-3 rounded-full bg-[#0e0f14] border-2 ${dotBorder}`}
+                      className={`absolute -left-1.5 top-1.5 w-3 h-3 rounded-full bg-dark-card border-2 ${dotBorder}`}
                     />
                     <div className="text-[10px] text-[#8a7f70] font-mono mb-1">
                       {log.timestamp || "Just now"}

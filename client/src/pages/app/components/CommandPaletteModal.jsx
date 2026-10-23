@@ -204,9 +204,11 @@ const CommandPaletteModal = ({
 
   useEffect(() => {
     if (isOpen) {
-      setQuery("");
-      setSelectedIndex(0);
-      setTimeout(() => inputRef.current?.focus(), 50);
+      const focusTimeoutId = window.setTimeout(
+        () => inputRef.current?.focus(),
+        50,
+      );
+      return () => window.clearTimeout(focusTimeoutId);
     }
   }, [isOpen]);
 
@@ -244,11 +246,11 @@ const CommandPaletteModal = ({
       onClick={(e) => {
         if (e.target.id === "cmd-palette-overlay") onClose();
       }}
-      className="fixed inset-0 cmd-palette-overlay z-[100] flex items-start justify-center pt-24 transition-opacity p-4 bg-black/80 backdrop-blur-sm"
+      className="fixed inset-0 cmd-palette-overlay z-100 flex items-start justify-center pt-24 transition-opacity p-4 bg-black/80 backdrop-blur-sm"
     >
       <div
         id="cmd-palette"
-        className="w-full max-w-xl bg-[#0e0f14] border border-[#2a2520] rounded-xl shadow-[0_20px_50px_rgba(0,0,0,0.8)] overflow-hidden animate-fadeInUp"
+        className="w-full max-w-xl bg-dark-card border border-[#2a2520] rounded-xl shadow-[0_20px_50px_rgba(0,0,0,0.8)] overflow-hidden animate-fadeInUp"
       >
         <div className="flex items-center gap-3 px-4 py-3.5 border-b border-[#201d1a]">
           <Search className="w-4 h-4 text-orange-500" />
@@ -263,7 +265,7 @@ const CommandPaletteModal = ({
             }}
             onKeyDown={handleKeyDown}
             placeholder="Search commands, agents, workflows, policies..."
-            className="flex-1 bg-transparent text-sm text-[#faf7f0] placeholder-[#78716c] outline-none font-mono"
+            className="flex-1 bg-transparent text-sm text-cream-100 placeholder-[#78716c] outline-none font-mono"
             autoComplete="off"
           />
           <kbd
@@ -302,7 +304,7 @@ const CommandPaletteModal = ({
                       className={`w-full flex items-center gap-3 px-4 py-2.5 text-xs hover:bg-[#1c1d25] transition-colors font-mono cursor-pointer ${
                         isSelected
                           ? "bg-orange-500/15 text-orange-300"
-                          : "text-[#faf7f0]"
+                          : "text-cream-100"
                       }`}
                     >
                       <Icon className="w-4 h-4 text-orange-400 shrink-0" />

@@ -68,7 +68,7 @@ const OkfView = ({ policies = [], onToast }) => {
 
   const renderCode = (rule) => {
     return (
-      <pre className="leading-relaxed font-mono text-[11px] text-[#faf7f0]">
+      <pre className="leading-relaxed font-mono text-[11px] text-cream-100">
         <code>{rule}</code>
       </pre>
     );
@@ -101,7 +101,7 @@ const OkfView = ({ policies = [], onToast }) => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-3 mb-1">
-            <h1 className="text-3xl font-extrabold text-[#faf7f0] tracking-tight">
+            <h1 className="text-3xl font-extrabold text-cream-100 tracking-tight">
               OKF Policy Engine
             </h1>
             <span className="text-[10px] uppercase font-mono tracking-wider bg-orange-500/20 text-orange-300 px-2 py-0.5 rounded font-bold border border-orange-500/30">
@@ -122,11 +122,11 @@ const OkfView = ({ policies = [], onToast }) => {
       </div>
 
       {/* Info Banner */}
-      <div className="bg-[#0e0f14] border border-[#201d1a] rounded-xl p-6 shadow-xl flex flex-col md:flex-row items-center gap-6">
+      <div className="bg-dark-card border border-[#201d1a] rounded-xl p-6 shadow-xl flex flex-col md:flex-row items-center gap-6">
         <div className="flex-1">
           <div className="flex items-center gap-2 mb-2">
             <ShieldCheck className="w-5 h-5 text-orange-500" />
-            <h3 className="font-bold text-[#faf7f0] text-sm font-mono">
+            <h3 className="font-bold text-cream-100 text-sm font-mono">
               Deterministic Guardrails vs Stochastic LLMs
             </h3>
           </div>
@@ -134,7 +134,7 @@ const OkfView = ({ policies = [], onToast }) => {
             While RAG provides dynamic context (80%), OKF establishes immutable deterministic rules (20%) that agents cannot bypass. If a policy fails, the platform halts execution and invokes the Human-in-the-Loop review gate.
           </p>
         </div>
-        <div className="w-full md:w-1/3 shrink-0 bg-[#070709] p-3 rounded-lg border border-[#23201d] font-mono text-xs">
+        <div className="w-full md:w-1/3 shrink-0 bg-dark-base p-3 rounded-lg border border-dark-border font-mono text-xs">
           <div className="flex justify-between text-[11px] text-[#8a7f70] mb-1">
             <span>
               Active Rules: <b className="text-orange-400">5 Enabled</b>
@@ -151,7 +151,7 @@ const OkfView = ({ policies = [], onToast }) => {
         {displayPolicies.map((p) => (
           <div
             key={p.id}
-            className="bg-[#0e0f14] border border-[#201d1a] hover:border-orange-500/40 rounded-xl p-6 flex flex-col justify-between transition-all hover:shadow-[0_4px_20px_rgba(249,115,22,0.1)]"
+            className="bg-dark-card border border-[#201d1a] hover:border-orange-500/40 rounded-xl p-6 flex flex-col justify-between transition-all hover:shadow-[0_4px_20px_rgba(249,115,22,0.1)]"
           >
             <div>
               <div className="flex items-start justify-between gap-3 mb-3">
@@ -165,7 +165,7 @@ const OkfView = ({ policies = [], onToast }) => {
                       {p.category}
                     </span>
                   </div>
-                  <h3 className="text-sm font-bold text-[#faf7f0]">{p.name}</h3>
+                  <h3 className="text-sm font-bold text-cream-100">{p.name}</h3>
                 </div>
                 <div>{getRiskBadge(p.risk)}</div>
               </div>
@@ -181,7 +181,7 @@ const OkfView = ({ policies = [], onToast }) => {
                     {p.version || "v1.0"}
                   </span>
                 </div>
-                <div className="bg-[#070709] border border-[#23201d] rounded-lg p-3 font-mono text-[11px] text-[#faf7f0] overflow-x-auto custom-scrollbar">
+                <div className="bg-dark-base border border-dark-border rounded-lg p-3 font-mono text-[11px] text-cream-100 overflow-x-auto custom-scrollbar">
                   {renderCode(p.rule)}
                 </div>
               </div>
@@ -190,7 +190,7 @@ const OkfView = ({ policies = [], onToast }) => {
             <div className="pt-4 border-t border-[#201d1a] flex items-center justify-between font-mono text-xs">
               <span className="text-[#8a7f70]">
                 Triggered:{" "}
-                <span className="text-[#faf7f0] font-bold">
+                <span className="text-cream-100 font-bold">
                   {p.triggers || 0} times
                 </span>
               </span>

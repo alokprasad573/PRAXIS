@@ -9,7 +9,7 @@ const AgentGrid = ({ agent }) => {
             <IconComponent className="w-5 h-5" />
           </div>
           <div>
-            <h4 className="font-bold text-[#faf7f0] font-mono text-sm">
+            <h4 className="font-bold text-cream-100 font-mono text-sm">
               {agent.title}
             </h4>
             <span className="text-[10px] text-orange-400 font-mono">
@@ -24,7 +24,7 @@ const AgentGrid = ({ agent }) => {
 
       <p className="text-xs text-[#a89f91] mb-4">{agent.description}</p>
 
-      <div className="bg-[#070709] p-3 rounded-lg border border-[#23201d] font-mono text-[10px] text-[#d6c5a8]">
+      <div className="bg-dark-base p-3 rounded-lg border border-dark-border font-mono text-[10px] text-[#d6c5a8]">
         {agent.capabilities}
       </div>
     </>

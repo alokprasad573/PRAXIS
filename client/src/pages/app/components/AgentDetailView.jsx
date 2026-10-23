@@ -63,14 +63,14 @@ const AgentDetailView = ({
           <ArrowLeft className="w-3.5 h-3.5" /> Back to Agent Library
         </button>
 
-        <div className="bg-[#0e0f14] border border-[#201d1a] rounded-xl p-6 shadow-xl flex flex-col md:flex-row items-start justify-between gap-6">
+        <div className="bg-dark-card border border-[#201d1a] rounded-xl p-6 shadow-xl flex flex-col md:flex-row items-start justify-between gap-6">
           <div className="flex items-start gap-4">
             <div className="w-14 h-14 rounded-2xl bg-orange-500/15 border border-orange-500/35 flex items-center justify-center text-orange-400 shadow-[0_0_20px_rgba(249,115,22,0.3)] shrink-0">
               <TestTube2 className="w-7 h-7" />
             </div>
             <div>
               <div className="flex items-center gap-3 mb-1">
-                <h1 className="text-2xl font-extrabold text-[#faf7f0]">
+                <h1 className="text-2xl font-extrabold text-cream-100">
                   {agent.name}
                 </h1>
                 <span className="text-xs px-2 py-0.5 rounded bg-[#181920] text-orange-400 font-mono font-bold">
@@ -83,11 +83,11 @@ const AgentDetailView = ({
               <div className="flex items-center gap-5 mt-3 text-xs text-[#a89f91] font-mono">
                 <span className="flex items-center gap-1.5">
                   <Cpu className="w-3.5 h-3.5 text-orange-400" /> Model:{" "}
-                  <span className="text-[#faf7f0]">{agent.model}</span>
+                  <span className="text-cream-100">{agent.model}</span>
                 </span>
                 <span className="flex items-center gap-1.5">
                   <Activity className="w-3.5 h-3.5 text-orange-400" /> Runs:{" "}
-                  <span className="text-[#faf7f0]">{agent.totalRuns || 156}</span>
+                  <span className="text-cream-100">{agent.totalRuns || 156}</span>
                 </span>
                 <span className="flex items-center gap-1.5">
                   <CheckCircle className="w-3.5 h-3.5 text-emerald-400" /> Success:{" "}
@@ -116,18 +116,18 @@ const AgentDetailView = ({
       {/* Agent Detail View */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Left: The Unit Test Loop Visualizer */}
-        <div className="bg-[#0e0f14] border border-[#201d1a] rounded-xl p-6 shadow-xl">
-          <h3 className="text-xs font-bold font-mono text-[#faf7f0] uppercase tracking-wider mb-6 flex items-center gap-2">
+        <div className="bg-dark-card border border-[#201d1a] rounded-xl p-6 shadow-xl">
+          <h3 className="text-xs font-bold font-mono text-cream-100 uppercase tracking-wider mb-6 flex items-center gap-2">
             <Repeat className="w-4 h-4 text-orange-500" /> Autonomous Unit Test Loop Architecture
           </h3>
 
           <div className="relative pl-6 space-y-3.5">
             {/* Vertical line connecting nodes */}
-            <div className="absolute left-[31px] top-4 bottom-4 w-0.5 bg-[#201d1a] z-0" />
+            <div className="absolute left-7.75 top-4 bottom-4 w-0.5 bg-[#201d1a] z-0" />
 
             {/* Loop back arrow visualization */}
             <div className="absolute right-4 top-1/2 bottom-8 w-6 border-t-2 border-r-2 border-b-2 border-orange-500/40 rounded-r-xl z-0 border-dashed" />
-            <div className="absolute right-[14px] top-1/2 -mt-[5px] text-orange-500">
+            <div className="absolute right-3.5 top-1/2 -mt-1.25 text-orange-500">
               <ChevronLeft className="w-3.5 h-3.5" />
             </div>
 
@@ -136,10 +136,10 @@ const AgentDetailView = ({
               return (
                 <div
                   key={step.name}
-                  className={`relative z-10 flex items-center justify-between bg-[#070709] border ${
+                  className={`relative z-10 flex items-center justify-between bg-dark-base border ${
                     step.status === "running"
                       ? "border-orange-500/60 shadow-[0_0_15px_rgba(249,115,22,0.2)] bg-orange-500/5"
-                      : "border-[#23201d]"
+                      : "border-dark-border"
                   } rounded-xl p-3 shadow-sm transition-all`}
                 >
                   <div className="flex items-center gap-3">
@@ -160,7 +160,7 @@ const AgentDetailView = ({
                           ? "text-[#8a7f70]"
                           : step.status === "running"
                             ? "text-orange-300 font-bold"
-                            : "text-[#faf7f0]"
+                            : "text-cream-100"
                       }`}
                     >
                       {step.name}
@@ -187,7 +187,7 @@ const AgentDetailView = ({
               );
             })}
 
-            <div className="absolute right-8 top-1/2 -mt-4 text-[9px] text-orange-400 font-mono tracking-wider rotate-90 origin-right whitespace-nowrap bg-[#0e0f14] px-1.5 font-bold">
+            <div className="absolute right-8 top-1/2 -mt-4 text-[9px] text-orange-400 font-mono tracking-wider rotate-90 origin-right whitespace-nowrap bg-dark-card px-1.5 font-bold">
               IF COVERAGE &lt; 80%, RETRY LOOP
             </div>
           </div>
@@ -195,15 +195,15 @@ const AgentDetailView = ({
 
         {/* Right: Live Metrics & Progress */}
         <div className="space-y-6">
-          <div className="bg-[#0e0f14] border border-[#201d1a] rounded-xl p-6 shadow-xl">
-            <h3 className="text-xs font-bold font-mono text-[#faf7f0] uppercase tracking-wider mb-4">
+          <div className="bg-dark-card border border-[#201d1a] rounded-xl p-6 shadow-xl">
+            <h3 className="text-xs font-bold font-mono text-cream-100 uppercase tracking-wider mb-4">
               Code Coverage Delta Progress
             </h3>
             <div className="space-y-4 font-mono text-xs">
               <div>
                 <div className="flex justify-between text-[#8a7f70] mb-1.5">
                   <span>Initial Base Coverage</span>
-                  <span className="text-[#faf7f0]">48%</span>
+                  <span className="text-cream-100">48%</span>
                 </div>
                 <div className="w-full bg-[#181920] rounded-full h-2 overflow-hidden border border-[#26231f]">
                   <div className="bg-[#524c45] h-2 rounded-full" style={{ width: "48%" }} />
@@ -220,7 +220,7 @@ const AgentDetailView = ({
                     style={{ width: "74%" }}
                   />
                   {/* Target marker 80% */}
-                  <div className="absolute top-[-4px] bottom-[-4px] w-1 bg-amber-400 left-[80%] shadow-[0_0_8px_rgba(251,191,36,0.8)] rounded-full" />
+                  <div className="absolute -top-1 -bottom-1 w-1 bg-amber-400 left-[80%] shadow-[0_0_8px_rgba(251,191,36,0.8)] rounded-full" />
                 </div>
                 <div className="text-[10px] text-amber-400 mt-1.5 text-right font-bold">
                   ★ Target Threshold: 80%
@@ -230,14 +230,14 @@ const AgentDetailView = ({
           </div>
 
           <div className="grid grid-cols-2 gap-4">
-            <div className="bg-[#0e0f14] border border-[#201d1a] rounded-xl p-5 shadow-xl">
-              <h3 className="text-xs font-bold font-mono text-[#faf7f0] uppercase tracking-wider mb-3">
+            <div className="bg-dark-card border border-[#201d1a] rounded-xl p-5 shadow-xl">
+              <h3 className="text-xs font-bold font-mono text-cream-100 uppercase tracking-wider mb-3">
                 Test Execution
               </h3>
               <div className="space-y-2 font-mono text-xs">
                 <div className="flex justify-between">
                   <span className="text-[#a89f91]">Generated:</span>
-                  <span className="text-[#faf7f0] font-bold">43</span>
+                  <span className="text-cream-100 font-bold">43</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-[#a89f91]">Passing:</span>
@@ -254,18 +254,18 @@ const AgentDetailView = ({
               </div>
             </div>
 
-            <div className="bg-[#0e0f14] border border-[#201d1a] rounded-xl p-5 shadow-xl">
-              <h3 className="text-xs font-bold font-mono text-[#faf7f0] uppercase tracking-wider mb-3">
+            <div className="bg-dark-card border border-[#201d1a] rounded-xl p-5 shadow-xl">
+              <h3 className="text-xs font-bold font-mono text-cream-100 uppercase tracking-wider mb-3">
                 Token Consumption
               </h3>
               <div className="space-y-2 font-mono text-xs">
                 <div className="flex justify-between">
                   <span className="text-[#a89f91]">Input Tokens:</span>
-                  <span className="text-[#faf7f0]">18,302</span>
+                  <span className="text-cream-100">18,302</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-[#a89f91]">Output Tokens:</span>
-                  <span className="text-[#faf7f0]">8,441</span>
+                  <span className="text-cream-100">8,441</span>
                 </div>
                 <div className="flex justify-between border-t border-[#201d1a] pt-1.5 mt-1.5">
                   <span className="text-orange-300">Total:</span>
@@ -279,11 +279,11 @@ const AgentDetailView = ({
             </div>
           </div>
 
-          <div className="bg-[#070709] border border-[#201d1a] rounded-xl p-4 font-mono text-xs text-[#d6c5a8]">
+          <div className="bg-dark-base border border-[#201d1a] rounded-xl p-4 font-mono text-xs text-[#d6c5a8]">
             <div className="text-[10px] text-orange-400 mb-2 uppercase tracking-wider font-bold flex items-center gap-1.5">
               <Terminal className="w-3.5 h-3.5" /> Last Agent Output
             </div>
-            <p className="leading-relaxed text-[#faf7f0]">
+            <p className="leading-relaxed text-cream-100">
               &quot;Remediating StripeWebhook.verifySignature failure. Added missing fixture for event timestamp offset. Re-running Jest test runner in sandbox...&quot;
             </p>
             <div className="mt-2 text-[10px] text-[#8a7f70]">

@@ -25,7 +25,7 @@ const WorkSpacePreview = () => {
             </div>
 
             {/* Dashboard Image */}
-            <div className="overflow-hidden rounded-b-xl bg-[#070709]">
+            <div className="overflow-hidden rounded-b-xl bg-dark-base">
               <img
                 src={dashboardImage}
                 alt="PRAXIS Autonomous AI Command Center"

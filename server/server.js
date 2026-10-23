@@ -4,7 +4,11 @@ const chalk = require("chalk");
 const cors = require("cors");
 require('dotenv').config();
 
+const authRoutes = require("./routes/auth.routes")
+const projectRoutes = require("./routes/project.routes")
+
 const { atlasConnect } = require("./config/db")
+
 // Global Middlewares
 const allowedOrigins = [
   "http://localhost:5173",
@@ -43,3 +47,6 @@ atlasConnect()
     console.log(err);
     process.exit(1);
   });
+
+app.use("/api/auth", authRoutes);
+app.use("/api/projects", projectRoutes);

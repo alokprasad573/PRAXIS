@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Plus, Search, Bot, Eye } from "lucide-react";
 
 const WorkflowsView = ({
+  projects = [],
   workflows = [],
   onNavigate,
   onOpenNewWorkflow,
@@ -61,7 +62,7 @@ const WorkflowsView = ({
         );
       default:
         return (
-          <span className="px-2 py-0.5 rounded text-[10px] bg-[#181920] text-[#faf7f0] font-mono">
+          <span className="px-2 py-0.5 rounded text-[10px] bg-[#181920] text-cream-100 font-mono">
             {status || "Active"}
           </span>
         );
@@ -73,7 +74,7 @@ const WorkflowsView = ({
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-extrabold text-[#faf7f0] tracking-tight">
+          <h1 className="text-3xl font-extrabold text-cream-100 tracking-tight">
             Workflows
           </h1>
           <p className="text-xs text-[#b8ab97] font-mono mt-1">
@@ -90,7 +91,7 @@ const WorkflowsView = ({
       </div>
 
       {/* Filters Bar */}
-      <div className="flex flex-wrap gap-3 bg-[#0e0f14] border border-[#201d1a] rounded-xl p-3 font-mono text-xs">
+      <div className="flex flex-wrap gap-3 bg-dark-card border border-[#201d1a] rounded-xl p-3 font-mono text-xs">
         <div className="relative grow max-w-md">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-orange-400" />
           <input
@@ -98,21 +99,22 @@ const WorkflowsView = ({
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search workflow name, ID, branch..."
-            className="w-full bg-[#070709] border border-[#26231f] rounded-lg pl-9 pr-4 py-1.5 text-xs text-[#faf7f0] focus:outline-none focus:border-orange-500"
+            className="w-full bg-dark-base border border-[#26231f] rounded-lg pl-9 pr-4 py-1.5 text-xs text-cream-100 focus:outline-none focus:border-orange-500"
           />
         </div>
         <select
           value={projectFilter}
           onChange={(e) => setProjectFilter(e.target.value)}
-          className="bg-[#070709] border border-[#26231f] rounded-lg px-3 py-1.5 text-xs text-[#d6c5a8] focus:outline-none focus:border-orange-500"
+          className="bg-dark-base border border-[#26231f] rounded-lg px-3 py-1.5 text-xs text-[#d6c5a8] focus:outline-none focus:border-orange-500"
         >
-          <option>All Projects</option>
-          <option>payments-api</option>
-          <option>ecommerce-frontend</option>
-          <option>auth-service</option>
-          <option>data-pipeline</option>
+          <option value="All Projects">All Projects</option>
+          {projects.map((p) => (
+            <option key={p.id || p._id} value={p.name}>
+              {p.name}
+            </option>
+          ))}
         </select>
-        <select className="bg-[#070709] border border-[#26231f] rounded-lg px-3 py-1.5 text-xs text-[#d6c5a8] focus:outline-none focus:border-orange-500">
+        <select className="bg-dark-base border border-[#26231f] rounded-lg px-3 py-1.5 text-xs text-[#d6c5a8] focus:outline-none focus:border-orange-500">
           <option>Sort: Newest First</option>
           <option>Sort: Status</option>
           <option>Sort: Progress</option>
@@ -129,7 +131,7 @@ const WorkflowsView = ({
             className={`px-3.5 py-1.5 rounded-lg transition-colors cursor-pointer ${
               statusFilter === pill
                 ? "font-bold bg-orange-600 text-white shadow-[0_0_10px_rgba(249,115,22,0.3)]"
-                : "bg-[#0e0f14] text-[#d6c5a8] border border-[#201d1a] hover:border-orange-500/30"
+                : "bg-dark-card text-[#d6c5a8] border border-[#201d1a] hover:border-orange-500/30"
             }`}
           >
             {pill}
@@ -138,10 +140,10 @@ const WorkflowsView = ({
       </div>
 
       {/* Workflows Table */}
-      <div className="bg-[#0e0f14] border border-[#201d1a] rounded-xl overflow-hidden shadow-xl">
+      <div className="bg-dark-card border border-[#201d1a] rounded-xl overflow-hidden shadow-xl">
         <div className="overflow-x-auto custom-scrollbar">
           <table className="w-full text-left text-xs whitespace-nowrap">
-            <thead className="bg-[#070709] text-[#a89f91] font-mono uppercase tracking-wider border-b border-[#201d1a]">
+            <thead className="bg-dark-base text-[#a89f91] font-mono uppercase tracking-wider border-b border-[#201d1a]">
               <tr>
                 <th className="px-4 py-3 font-semibold">Workflow</th>
                 <th className="px-4 py-3 font-semibold">Project / Branch</th>
@@ -153,7 +155,7 @@ const WorkflowsView = ({
                 <th className="px-4 py-3 font-semibold text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#201d1a] text-[#faf7f0] font-mono">
+            <tbody className="divide-y divide-[#201d1a] text-cream-100 font-mono">
               {filteredWorkflows.map((wf) => (
                 <tr
                   key={wf.id}
@@ -162,12 +164,12 @@ const WorkflowsView = ({
                 >
                   <td className="px-4 py-3.5">
                     <div className="font-bold text-orange-400">{wf.id}</div>
-                    <div className="text-xs text-[#faf7f0] font-sans font-medium mt-0.5">
+                    <div className="text-xs text-cream-100 font-sans font-medium mt-0.5">
                       {wf.name}
                     </div>
                   </td>
                   <td className="px-4 py-3.5 text-[#d6c5a8]">
-                    <div>{wf.project || "payments-api"}</div>
+                    <div>{wf.project || "Custom Project"}</div>
                     <div className="text-[10px] text-[#78716c]">
                       {wf.branch || "main"}
                     </div>
@@ -185,7 +187,7 @@ const WorkflowsView = ({
                   </td>
                   <td className="px-4 py-3.5">
                     <div className="flex items-center gap-2">
-                      <div className="w-16 bg-[#181920] rounded-full h-1.5 overflow-hidden border border-[#23201d]">
+                      <div className="w-16 bg-[#181920] rounded-full h-1.5 overflow-hidden border border-dark-border">
                         <div
                           className="bg-orange-500 h-1.5 rounded-full"
                           style={{ width: `${wf.progress || 0}%` }}

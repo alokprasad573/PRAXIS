@@ -36,8 +36,7 @@ const WorkflowDetailView = ({
 }) => {
   const [activeTab, setActiveTab] = useState("execution");
 
-  const wf =
-    workflows.find((w) => w.id === workflowId) ||
+  const wf = workflows.find((w) => w.id === workflowId) ||
     workflows[0] || {
       id: "WF-2048",
       name: "Autonomous Test Coverage Enhancement",
@@ -85,7 +84,7 @@ const WorkflowDetailView = ({
         );
       default:
         return (
-          <span className="px-2 py-0.5 rounded text-[10px] bg-[#181920] text-[#faf7f0] font-mono">
+          <span className="px-2 py-0.5 rounded text-[10px] bg-[#181920] text-cream-100 font-mono">
             {status || "Active"}
           </span>
         );
@@ -104,7 +103,7 @@ const WorkflowDetailView = ({
       </button>
 
       {/* Workflow Header */}
-      <div className="bg-[#0e0f14] border border-[#201d1a] rounded-xl p-6 shadow-xl relative overflow-hidden">
+      <div className="bg-dark-card border border-[#201d1a] rounded-xl p-6 shadow-xl relative overflow-hidden">
         <div className="absolute top-0 right-0 w-96 h-32 bg-orange-500/5 blur-3xl pointer-events-none" />
         <div className="flex flex-col md:flex-row md:items-start justify-between gap-4 relative z-10">
           <div>
@@ -113,7 +112,7 @@ const WorkflowDetailView = ({
                 {wf.id || "WF-2048"}
               </span>
               <span className="text-[#524c45]">/</span>
-              <span className="text-xs text-[#faf7f0] hover:text-orange-300 transition-colors">
+              <span className="text-xs text-cream-100 hover:text-orange-300 transition-colors">
                 {wf.project || "payments-api"}
               </span>
               <span className="text-[#524c45]">/</span>
@@ -122,7 +121,7 @@ const WorkflowDetailView = ({
                 {wf.branch || "main"}
               </span>
             </div>
-            <h1 className="text-2xl font-extrabold text-[#faf7f0] tracking-tight mb-3">
+            <h1 className="text-2xl font-extrabold text-cream-100 tracking-tight mb-3">
               {wf.name || "Autonomous Test Coverage Enhancement"}
             </h1>
             <div className="flex items-center gap-3 flex-wrap">
@@ -144,15 +143,19 @@ const WorkflowDetailView = ({
           <div className="flex gap-2">
             <button
               type="button"
-              onClick={() => onToast && onToast("Workflow execution restarted", "info")}
-              className="bg-[#14151b] hover:bg-[#1c1d25] text-[#faf7f0] px-3 py-1.5 text-xs font-mono rounded-lg transition-colors border border-[#282420] flex items-center gap-1.5 cursor-pointer"
+              onClick={() =>
+                onToast && onToast("Workflow execution restarted", "info")
+              }
+              className="bg-[#14151b] hover:bg-[#1c1d25] text-cream-100 px-3 py-1.5 text-xs font-mono rounded-lg transition-colors border border-[#282420] flex items-center gap-1.5 cursor-pointer"
             >
               <RotateCw className="w-3.5 h-3.5 text-orange-400" /> Re-run
             </button>
             {isRunning && (
               <button
                 type="button"
-                onClick={() => onToast && onToast("Workflow execution halted", "warning")}
+                onClick={() =>
+                  onToast && onToast("Workflow execution halted", "warning")
+                }
                 className="bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 px-3 py-1.5 text-xs font-mono rounded-lg transition-colors border border-rose-500/25 flex items-center gap-1.5 cursor-pointer"
               >
                 <XCircle className="w-3.5 h-3.5" /> Abort
@@ -162,7 +165,7 @@ const WorkflowDetailView = ({
         </div>
 
         {/* Progress bar */}
-        <div className="mt-5 bg-[#181920] rounded-full h-1.5 overflow-hidden border border-[#23201d]">
+        <div className="mt-5 bg-[#181920] rounded-full h-1.5 overflow-hidden border border-dark-border">
           <div
             className={`h-1.5 rounded-full transition-all duration-1000 ${
               isRunning
@@ -175,7 +178,7 @@ const WorkflowDetailView = ({
       </div>
 
       {/* Tab Bar */}
-      <div className="bg-[#0e0f14] border border-[#201d1a] rounded-xl flex overflow-x-auto custom-scrollbar p-1 gap-1 shadow-lg">
+      <div className="bg-dark-card border border-[#201d1a] rounded-xl flex overflow-x-auto custom-scrollbar p-1 gap-1 shadow-lg">
         {tabs.map((tab) => {
           const Icon = tab.icon;
           const isSelected = activeTab === tab.id;
@@ -185,10 +188,10 @@ const WorkflowDetailView = ({
               key={tab.id}
               type="button"
               onClick={() => setActiveTab(tab.id)}
-              className={`flex-1 min-w-[120px] px-3.5 py-2.5 text-xs font-mono font-medium rounded-lg flex items-center justify-center gap-2 transition-all cursor-pointer ${
+              className={`flex-1 min-w-30 px-3.5 py-2.5 text-xs font-mono font-medium rounded-lg flex items-center justify-center gap-2 transition-all cursor-pointer ${
                 isSelected
                   ? "text-orange-300 bg-orange-500/15 border border-orange-500/30 shadow-[0_0_12px_rgba(249,115,22,0.15)] font-bold"
-                  : "text-[#a89f91] hover:text-[#faf7f0] hover:bg-[#14151b]"
+                  : "text-[#a89f91] hover:text-cream-100 hover:bg-[#14151b]"
               }`}
             >
               <Icon className="w-3.5 h-3.5" /> {tab.label}
@@ -198,36 +201,36 @@ const WorkflowDetailView = ({
       </div>
 
       {/* Tab Panels */}
-      <div className="min-h-[500px]">
+      <div className="min-h-125">
         {/* OVERVIEW TAB */}
         {activeTab === "overview" && (
           <div className="space-y-6 animate-fadeInUp">
             <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-              <div className="bg-[#0e0f14] border border-[#201d1a] rounded-xl p-4">
+              <div className="bg-dark-card border border-[#201d1a] rounded-xl p-4">
                 <div className="text-[11px] text-[#a89f91] mb-1 font-mono uppercase">
                   Agents Active
                 </div>
-                <div className="text-xl font-bold font-mono text-[#faf7f0]">
+                <div className="text-xl font-bold font-mono text-cream-100">
                   4 Agents
                 </div>
               </div>
-              <div className="bg-[#0e0f14] border border-[#201d1a] rounded-xl p-4">
+              <div className="bg-dark-card border border-[#201d1a] rounded-xl p-4">
                 <div className="text-[11px] text-[#a89f91] mb-1 font-mono uppercase">
                   Tokens Consumed
                 </div>
-                <div className="text-xl font-bold font-mono text-[#faf7f0]">
+                <div className="text-xl font-bold font-mono text-cream-100">
                   124.5K
                 </div>
               </div>
-              <div className="bg-[#0e0f14] border border-[#201d1a] rounded-xl p-4">
+              <div className="bg-dark-card border border-[#201d1a] rounded-xl p-4">
                 <div className="text-[11px] text-[#a89f91] mb-1 font-mono uppercase">
                   Estimated Cost
                 </div>
-                <div className="text-xl font-bold font-mono text-[#faf7f0]">
+                <div className="text-xl font-bold font-mono text-cream-100">
                   $0.42
                 </div>
               </div>
-              <div className="bg-[#0e0f14] border border-[#201d1a] rounded-xl p-4">
+              <div className="bg-dark-card border border-[#201d1a] rounded-xl p-4">
                 <div className="text-[11px] text-[#a89f91] mb-1 font-mono uppercase">
                   Improvement Loops
                 </div>
@@ -235,7 +238,7 @@ const WorkflowDetailView = ({
                   2 / 3
                 </div>
               </div>
-              <div className="bg-[#0e0f14] border border-[#201d1a] rounded-xl p-4">
+              <div className="bg-dark-card border border-[#201d1a] rounded-xl p-4">
                 <div className="text-[11px] text-[#a89f91] mb-1 font-mono uppercase">
                   Gate Approvals
                 </div>
@@ -245,18 +248,18 @@ const WorkflowDetailView = ({
               </div>
             </div>
 
-            <div className="bg-[#0e0f14] border border-[#201d1a] rounded-xl p-6">
-              <h3 className="text-sm font-bold font-mono text-[#faf7f0] uppercase tracking-wider mb-6">
+            <div className="bg-dark-card border border-[#201d1a] rounded-xl p-6">
+              <h3 className="text-sm font-bold font-mono text-cream-100 uppercase tracking-wider mb-6">
                 Orchestration Phase Progression
               </h3>
               <div className="flex flex-col space-y-4 relative before:absolute before:inset-0 before:ml-5 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-[#201d1a]">
                 <div className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group">
-                  <div className="flex items-center justify-center w-10 h-10 rounded-full border-4 border-[#0e0f14] bg-emerald-500 text-white shadow shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 z-10">
+                  <div className="flex items-center justify-center w-10 h-10 rounded-full border-4 border-dark-card bg-emerald-500 text-white shadow shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 z-10">
                     <Check className="w-4 h-4" />
                   </div>
                   <div className="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] bg-[#14151b] p-4 rounded-xl border border-[#282420]">
                     <div className="flex items-center justify-between mb-1 font-mono">
-                      <h4 className="font-bold text-[#faf7f0] text-xs">
+                      <h4 className="font-bold text-cream-100 text-xs">
                         Orchestrator Decomposition
                       </h4>
                       <span className="text-[10px] text-emerald-400">
@@ -270,7 +273,7 @@ const WorkflowDetailView = ({
                 </div>
 
                 <div className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group">
-                  <div className="flex items-center justify-center w-10 h-10 rounded-full border-4 border-[#0e0f14] bg-orange-500 text-white shadow shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 z-10 animate-pulse shadow-[0_0_12px_rgba(249,115,22,0.8)]">
+                  <div className="flex items-center justify-center w-10 h-10 rounded-full border-4 border-dark-card bg-orange-500 text-white shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 z-10 animate-pulse shadow-[0_0_12px_rgba(249,115,22,0.8)]">
                     <Bot className="w-4 h-4" />
                   </div>
                   <div className="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] bg-orange-500/10 p-4 rounded-xl border border-orange-500/30">
@@ -290,7 +293,7 @@ const WorkflowDetailView = ({
                 </div>
 
                 <div className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group">
-                  <div className="flex items-center justify-center w-10 h-10 rounded-full border-4 border-[#0e0f14] bg-[#181920] text-[#8a7f70] shadow shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 z-10 border border-[#2a2520]">
+                  <div className="flex items-center justify-center w-10 h-10 rounded-full border-4 border-dark-card bg-[#181920] text-[#8a7f70] shadow shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 z-10">
                     <Clock className="w-4 h-4" />
                   </div>
                   <div className="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] bg-[#121319] p-4 rounded-xl border border-[#201d1a]">
@@ -313,7 +316,7 @@ const WorkflowDetailView = ({
 
         {/* EXECUTION GRAPH TAB */}
         {activeTab === "execution" && (
-          <div className="bg-[#0e0f14] border border-[#201d1a] rounded-xl p-6 overflow-x-auto relative min-h-[420px] flex items-center justify-center custom-scrollbar shadow-xl animate-fadeInUp">
+          <div className="bg-dark-card border border-[#201d1a] rounded-xl p-6 overflow-x-auto relative min-h-105x items-center justify-center custom-scrollbar shadow-xl animate-fadeInUp">
             <div className="flex items-center gap-8 min-w-max relative py-12">
               {/* Connecting SVG Lines */}
               <svg
@@ -365,18 +368,18 @@ const WorkflowDetailView = ({
               </svg>
 
               {/* Node: Start */}
-              <div className="w-[120px] bg-[#14151b] border border-[#282420] rounded-xl p-3 text-center z-10 flex flex-col items-center shadow-lg">
+              <div className="w-30 bg-[#14151b] border border-[#282420] rounded-xl p-3 text-center z-10 flex flex-col items-center shadow-lg">
                 <div className="w-8 h-8 rounded-lg bg-orange-500/10 flex items-center justify-center mb-1 text-orange-400">
                   <Play className="w-4 h-4 fill-orange-500/30" />
                 </div>
-                <span className="text-xs font-mono font-bold text-[#faf7f0]">
+                <span className="text-xs font-mono font-bold text-cream-100">
                   Start
                 </span>
               </div>
 
               {/* Node: Orchestrator (Completed) */}
-              <div className="w-[160px] bg-emerald-500/10 border border-emerald-500/40 rounded-xl p-3 text-center z-10 flex flex-col items-center shadow-lg relative">
-                <div className="absolute -top-2 -right-2 w-5 h-5 bg-emerald-500 rounded-full flex items-center justify-center text-white border-2 border-[#0e0f14]">
+              <div className="w-40merald-500/10 border border-emerald-500/40 rounded-xl p-3 text-center z-10 flex flex-col items-center shadow-lg relative">
+                <div className="absolute -top-2 -right-2 w-5 h-5 bg-emerald-500 rounded-full flex items-center justify-center text-white border-2 border-dark-card">
                   <Check className="w-3 h-3" />
                 </div>
                 <div className="w-8 h-8 rounded-lg bg-emerald-500/20 flex items-center justify-center mb-1 text-emerald-400">
@@ -393,8 +396,8 @@ const WorkflowDetailView = ({
               {/* Parallel Column */}
               <div className="flex flex-col gap-12 z-10">
                 {/* Node: Security Agent (Completed) */}
-                <div className="w-[160px] bg-emerald-500/10 border border-emerald-500/40 rounded-xl p-3 text-center shadow-lg flex flex-col items-center relative">
-                  <div className="absolute -top-2 -right-2 w-5 h-5 bg-emerald-500 rounded-full flex items-center justify-center text-white border-2 border-[#0e0f14]">
+                <div className="w-40 bg-emerald-500/10 border border-emerald-500/40 rounded-xl p-3 text-center shadow-lg flex flex-col items-center relative">
+                  <div className="absolute -top-2 -right-2 w-5 h-5 bg-emerald-500 rounded-full flex items-center justify-center text-white border-2 border-dark-card">
                     <Check className="w-3 h-3" />
                   </div>
                   <div className="w-8 h-8 rounded-lg bg-emerald-500/20 flex items-center justify-center mb-1 text-emerald-400">
@@ -409,8 +412,8 @@ const WorkflowDetailView = ({
                 </div>
 
                 {/* Node: Unit Test Agent (Running) */}
-                <div className="w-[160px] bg-orange-500/15 border-2 border-orange-500 rounded-xl p-3 text-center shadow-[0_0_20px_rgba(249,115,22,0.35)] flex flex-col items-center relative">
-                  <div className="absolute -top-2 -right-2 w-5 h-5 bg-orange-500 rounded-full flex items-center justify-center text-white border-2 border-[#0e0f14]">
+                <div className="w-40range-500/15 border-2 border-orange-500 rounded-xl p-3 text-center shadow-[0_0_20px_rgba(249,115,22,0.35)] flex flex-col items-center relative">
+                  <div className="absolute -top-2 -right-2 w-5 h-5 bg-orange-500 rounded-full flex items-center justify-center text-white border-2 border-dark-card">
                     <Loader className="w-3 h-3 animate-spin" />
                   </div>
                   <div className="w-8 h-8 rounded-lg bg-orange-500/20 flex items-center justify-center mb-1 text-orange-400">
@@ -426,7 +429,7 @@ const WorkflowDetailView = ({
               </div>
 
               {/* Node: Review (Waiting) */}
-              <div className="w-[150px] bg-[#14151b] border border-[#282420] rounded-xl p-3 text-center z-10 flex flex-col items-center shadow-lg opacity-60">
+              <div className="w-37.5-[#14151b] border border-[#282420] rounded-xl p-3 text-center z-10 flex flex-col items-center shadow-lg opacity-60">
                 <div className="w-8 h-8 rounded-lg bg-[#1c1d25] flex items-center justify-center mb-1 text-[#8a7f70]">
                   <Eye className="w-4 h-4" />
                 </div>
@@ -439,7 +442,7 @@ const WorkflowDetailView = ({
               </div>
 
               {/* Node: Result (Waiting) */}
-              <div className="w-[120px] bg-[#14151b] border border-[#282420] rounded-xl p-3 text-center z-10 flex flex-col items-center shadow-lg opacity-40">
+              <div className="w-30 bg-[#14151b] border border-[#282420] rounded-xl p-3 text-center z-10 flex flex-col items-center shadow-lg opacity-40">
                 <div className="w-8 h-8 rounded-lg bg-[#1c1d25] flex items-center justify-center mb-1 text-[#8a7f70]">
                   <Flag className="w-4 h-4" />
                 </div>
@@ -451,7 +454,7 @@ const WorkflowDetailView = ({
 
         {/* AGENTS TAB */}
         {activeTab === "agents" && (
-          <div className="bg-[#0e0f14] border border-[#201d1a] rounded-xl overflow-hidden shadow-xl animate-fadeInUp">
+          <div className="bg-dark-card border border-[#201d1a] rounded-xl overflow-hidden shadow-xl animate-fadeInUp">
             <table className="w-full text-left text-xs whitespace-nowrap">
               <thead className="bg-[#121319] text-[#a89f91] font-mono uppercase tracking-wider border-b border-[#201d1a]">
                 <tr>
@@ -460,10 +463,12 @@ const WorkflowDetailView = ({
                   <th className="px-4 py-3 font-semibold">Status</th>
                   <th className="px-4 py-3 font-semibold">Duration</th>
                   <th className="px-4 py-3 font-semibold">Tokens</th>
-                  <th className="px-4 py-3 font-semibold w-full">Output Summary</th>
+                  <th className="px-4 py-3 font-semibold w-full">
+                    Output Summary
+                  </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#201d1a] text-[#faf7f0] font-mono">
+              <tbody className="divide-y divide-[#201d1a] text-cream-100 font-mono">
                 <tr>
                   <td className="px-4 py-3 font-bold text-white flex items-center gap-2">
                     <Bot className="w-4 h-4 text-emerald-400" /> Orchestrator
@@ -526,9 +531,9 @@ const WorkflowDetailView = ({
         {/* CONTEXT TAB (80% RAG + 20% OKF) */}
         {activeTab === "context" && (
           <div className="space-y-6 animate-fadeInUp">
-            <div className="bg-[#0e0f14] border border-[#201d1a] rounded-xl p-8 flex flex-col items-center shadow-xl">
+            <div className="bg-dark-card border border-[#201d1a] rounded-xl p-8 flex flex-col items-center shadow-xl">
               <div className="text-center mb-6">
-                <h3 className="text-base font-bold font-mono text-[#faf7f0] uppercase tracking-wider">
+                <h3 className="text-base font-bold font-mono text-cream-100 uppercase tracking-wider">
                   Unified Context Manager Architecture
                 </h3>
                 <p className="text-xs text-[#a89f91] font-mono mt-1">
@@ -538,7 +543,7 @@ const WorkflowDetailView = ({
               </div>
 
               <div className="flex flex-col items-center w-full max-w-3xl font-mono text-xs">
-                <div className="bg-[#14151b] border border-[#282420] px-5 py-2.5 rounded-lg text-[#faf7f0] mb-3 z-10 font-bold shadow-md">
+                <div className="bg-[#14151b] border border-[#282420] px-5 py-2.5 rounded-lg text-cream-100 mb-3 z-10 font-bold shadow-md">
                   Developer Engineering Prompt
                 </div>
                 <div className="w-px h-6 bg-orange-500/50 mb-3 z-0" />
@@ -595,7 +600,7 @@ const WorkflowDetailView = ({
 
                 <div className="w-px h-6 bg-orange-500/50 mb-3 z-0" />
 
-                <div className="bg-gradient-to-r from-orange-600/30 via-amber-500/30 to-orange-600/30 border border-orange-500/50 px-8 py-3.5 rounded-xl text-[#faf7f0] mb-3 z-10 font-extrabold shadow-[0_0_20px_rgba(249,115,22,0.3)]">
+                <div className="bg-linear-to-r from-orange-600/30 via-amber-500/30 to-orange-600/30 border border-orange-500/50 px-8 py-3.5 rounded-xl text-cream-100 mb-3 z-10 font-extrabold shadow-[0_0_20px_rgba(249,115,22,0.3)]">
                   Unified Agent Context (124,500 Tokens Formatted)
                 </div>
 
@@ -610,8 +615,8 @@ const WorkflowDetailView = ({
 
         {/* ARTIFACTS TAB */}
         {activeTab === "artifacts" && (
-          <div className="bg-[#0e0f14] border border-[#201d1a] rounded-xl p-6 shadow-xl animate-fadeInUp">
-            <h3 className="text-sm font-bold font-mono text-[#faf7f0] uppercase tracking-wider mb-4">
+          <div className="bg-dark-card border border-[#201d1a] rounded-xl p-6 shadow-xl animate-fadeInUp">
+            <h3 className="text-sm font-bold font-mono text-cream-100 uppercase tracking-wider mb-4">
               Generated Engineering Artifacts
             </h3>
 
@@ -620,10 +625,10 @@ const WorkflowDetailView = ({
                 <FolderOpen className="w-4 h-4 text-orange-400" />{" "}
                 artifacts/payments-api/WF-2048/
               </div>
-              <div className="p-3 bg-[#070709]">
+              <div className="p-3 bg-dark-base">
                 <ul className="space-y-1.5">
                   <li>
-                    <div className="flex items-center gap-2 px-2.5 py-2 hover:bg-[#14151b] rounded-lg cursor-pointer text-[#faf7f0]">
+                    <div className="flex items-center gap-2 px-2.5 py-2 hover:bg-[#14151b] rounded-lg cursor-pointer text-cream-100">
                       <Folder className="w-4 h-4 text-orange-400" /> tests/unit/
                     </div>
                     <ul className="pl-6 space-y-1.5 border-l border-[#201d1a] ml-4 mt-1">
@@ -647,8 +652,8 @@ const WorkflowDetailView = ({
                       </li>
                       <li className="flex items-center justify-between px-2 py-1.5 hover:bg-[#14151b] rounded cursor-pointer text-[#d6c5a8]">
                         <div className="flex items-center gap-2">
-                          <FileCode className="w-3.5 h-3.5 text-[#8a7f70]" />{" "}
-                          41 other test suites...
+                          <FileCode className="w-3.5 h-3.5 text-[#8a7f70]" /> 41
+                          other test suites...
                         </div>
                       </li>
                     </ul>
@@ -659,7 +664,9 @@ const WorkflowDetailView = ({
                         <FileJson className="w-4 h-4 text-amber-400" />{" "}
                         coverage_delta_report.json
                       </div>
-                      <span className="text-[10px] text-[#8a7f70]">18.4 KB</span>
+                      <span className="text-[10px] text-[#8a7f70]">
+                        18.4 KB
+                      </span>
                     </div>
                   </li>
                   <li>
@@ -679,34 +686,72 @@ const WorkflowDetailView = ({
 
         {/* LOGS TAB */}
         {activeTab === "logs" && (
-          <div className="h-[480px] bg-[#070709] border border-[#201d1a] rounded-xl p-5 font-mono text-xs overflow-y-auto custom-scrollbar shadow-xl animate-fadeInUp">
+          <div className="h-120 bg-dark-base border border-[#201d1a] rounded-xl p-5 font-mono text-xs overflow-y-auto custom-scrollbar shadow-xl animate-fadeInUp">
             <div className="space-y-2">
               <div className="text-[#8a7f70]">
-                [22:10:15] <span className="text-orange-400 font-bold">[Orchestrator]</span> Initializing workflow WF-2048 in parallel mode...
+                [22:10:15]{" "}
+                <span className="text-orange-400 font-bold">
+                  [Orchestrator]
+                </span>{" "}
+                Initializing workflow WF-2048 in parallel mode...
               </div>
               <div className="text-[#8a7f70]">
-                [22:10:15] <span className="text-orange-400 font-bold">[Orchestrator]</span> Analyzing codebase AST: payments-api (Branch: main)
+                [22:10:15]{" "}
+                <span className="text-orange-400 font-bold">
+                  [Orchestrator]
+                </span>{" "}
+                Analyzing codebase AST: payments-api (Branch: main)
               </div>
               <div className="text-[#8a7f70]">
-                [22:10:16] <span className="text-orange-400 font-bold">[Orchestrator]</span> Decomposed into 4 agent subtasks with dependencies
+                [22:10:16]{" "}
+                <span className="text-orange-400 font-bold">
+                  [Orchestrator]
+                </span>{" "}
+                Decomposed into 4 agent subtasks with dependencies
               </div>
               <div className="text-[#8a7f70]">
-                [22:10:17] <span className="text-amber-400 font-bold">[RAG Vector Engine]</span> Ingested 24 semantic pattern chunks (similarity score &gt; 0.88)
+                [22:10:17]{" "}
+                <span className="text-amber-400 font-bold">
+                  [RAG Vector Engine]
+                </span>{" "}
+                Ingested 24 semantic pattern chunks (similarity score &gt; 0.88)
               </div>
               <div className="text-[#8a7f70]">
-                [22:10:18] <span className="text-orange-300 font-bold">[Unit Test Agent]</span> Target: Increase coverage from 48% to 80%
+                [22:10:18]{" "}
+                <span className="text-orange-300 font-bold">
+                  [Unit Test Agent]
+                </span>{" "}
+                Target: Increase coverage from 48% to 80%
               </div>
               <div className="text-[#8a7f70]">
-                [22:10:22] <span className="text-emerald-400 font-bold">[Unit Test Agent]</span> Generated 43 test suites in Jest format
+                [22:10:22]{" "}
+                <span className="text-emerald-400 font-bold">
+                  [Unit Test Agent]
+                </span>{" "}
+                Generated 43 test suites in Jest format
               </div>
               <div className="text-[#8a7f70]">
-                [22:10:25] <span className="text-[#faf7f0] font-bold">[Tool: Test Runner]</span> Executed <code className="text-orange-300">npm test -- --coverage</code> -&gt; 41 passed, 2 failed
+                [22:10:25]{" "}
+                <span className="text-cream-100 font-bold">
+                  [Tool: Test Runner]
+                </span>{" "}
+                Executed{" "}
+                <code className="text-orange-300">npm test -- --coverage</code>{" "}
+                -&gt; 41 passed, 2 failed
               </div>
               <div className="text-[#8a7f70]">
-                [22:10:26] <span className="text-orange-400 font-bold">[Unit Test Agent]</span> Evaluated failure logs, initiating autonomous fix loop (2/3)...
+                [22:10:26]{" "}
+                <span className="text-orange-400 font-bold">
+                  [Unit Test Agent]
+                </span>{" "}
+                Evaluated failure logs, initiating autonomous fix loop (2/3)...
               </div>
               <div className="text-[#8a7f70] flex items-center gap-2">
-                [22:10:28] <span className="text-orange-400 font-bold">[Unit Test Agent]</span> Regenerating mocked stripe dependencies...{" "}
+                [22:10:28]{" "}
+                <span className="text-orange-400 font-bold">
+                  [Unit Test Agent]
+                </span>{" "}
+                Regenerating mocked stripe dependencies...{" "}
                 <span className="w-1.5 h-1.5 bg-orange-400 rounded-full animate-pulse" />
               </div>
             </div>
@@ -716,41 +761,54 @@ const WorkflowDetailView = ({
         {/* APPROVALS TAB */}
         {activeTab === "approvals" && (
           <div className="space-y-4 animate-fadeInUp">
-            <div className="bg-[#0e0f14] border border-orange-500/40 rounded-xl p-6 shadow-[0_0_25px_rgba(249,115,22,0.1)] relative overflow-hidden">
+            <div className="bg-dark-card border border-orange-500/40 rounded-xl p-6 shadow-[0_0_25px_rgba(249,115,22,0.1)] relative overflow-hidden">
               <div className="absolute top-0 left-0 w-1.5 h-full bg-orange-500" />
               <div className="flex items-start justify-between mb-4">
                 <div>
                   <div className="flex items-center gap-2 text-orange-400 text-xs font-mono font-bold mb-1">
-                    <ShieldAlert className="w-4 h-4" /> Human-in-the-Loop Approval Required
+                    <ShieldAlert className="w-4 h-4" /> Human-in-the-Loop
+                    Approval Required
                   </div>
-                  <h3 className="text-lg font-bold text-[#faf7f0]">
+                  <h3 className="text-lg font-bold text-cream-100">
                     Commit 43 generated unit test files to main branch
                   </h3>
                 </div>
-                <span className="text-xs text-[#8a7f70] font-mono">12m ago</span>
+                <span className="text-xs text-[#8a7f70] font-mono">
+                  12m ago
+                </span>
               </div>
-              <div className="bg-[#070709] rounded-lg border border-[#23201d] p-4 text-xs text-[#d6c5a8] font-mono mb-5 leading-relaxed">
-                The Unit Test Agent has synthesized 43 comprehensive unit tests, boosting test coverage from 48% to 74%. 
-                Security scanner confirmed zero vulnerabilities. In accordance with OKF Rule #5 (AI-Generated Code Review), human authorization is required before committing to &apos;payments-api/main&apos;.
+              <div className="bg-dark-base rounded-lg border border-dark-border p-4 text-xs text-[#d6c5a8] font-mono mb-5 leading-relaxed">
+                The Unit Test Agent has synthesized 43 comprehensive unit tests,
+                boosting test coverage from 48% to 74%. Security scanner
+                confirmed zero vulnerabilities. In accordance with OKF Rule #5
+                (AI-Generated Code Review), human authorization is required
+                before committing to &apos;payments-api/main&apos;.
               </div>
               <div className="flex gap-3 font-mono text-xs">
                 <button
                   type="button"
-                  onClick={() => onToast && onToast("Changes approved and committed", "success")}
+                  onClick={() =>
+                    onToast &&
+                    onToast("Changes approved and committed", "success")
+                  }
                   className="bg-orange-600 hover:bg-orange-500 text-white px-5 py-2.5 rounded-lg transition-colors flex items-center gap-2 font-bold shadow-[0_0_12px_rgba(249,115,22,0.35)] cursor-pointer"
                 >
                   <Check className="w-4 h-4" /> Approve &amp; Commit
                 </button>
                 <button
                   type="button"
-                  onClick={() => onToast && onToast("Change request sent to agent", "info")}
-                  className="bg-[#14151b] hover:bg-[#1c1d25] text-[#faf7f0] px-4 py-2.5 rounded-lg transition-colors border border-[#282420] cursor-pointer"
+                  onClick={() =>
+                    onToast && onToast("Change request sent to agent", "info")
+                  }
+                  className="bg-[#14151b] hover:bg-[#1c1d25] text-cream-100 px-4 py-2.5 rounded-lg transition-colors border border-[#282420] cursor-pointer"
                 >
                   Request Changes
                 </button>
                 <button
                   type="button"
-                  onClick={() => onToast && onToast("Approval rejected", "error")}
+                  onClick={() =>
+                    onToast && onToast("Approval rejected", "error")
+                  }
                   className="bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 px-4 py-2.5 rounded-lg transition-colors border border-rose-500/25 cursor-pointer"
                 >
                   Reject
@@ -762,21 +820,23 @@ const WorkflowDetailView = ({
 
         {/* REPORT TAB */}
         {activeTab === "report" && (
-          <div className="bg-[#0e0f14] border border-[#201d1a] rounded-xl overflow-hidden shadow-xl animate-fadeInUp">
+          <div className="bg-dark-card border border-[#201d1a] rounded-xl overflow-hidden shadow-xl animate-fadeInUp">
             <div className="flex justify-between items-center px-6 py-3.5 border-b border-[#201d1a] bg-[#121319]">
               <span className="text-xs font-mono font-bold text-orange-400">
                 PRAXIS MULTI-AGENT SYNTHESIS REPORT
               </span>
               <button
                 type="button"
-                onClick={() => onToast && onToast("Report copied to clipboard", "success")}
-                className="text-xs font-mono text-[#d6c5a8] hover:text-[#faf7f0] flex items-center gap-1.5 transition-colors px-3 py-1.5 rounded-lg bg-[#181920] border border-[#282420] cursor-pointer"
+                onClick={() =>
+                  onToast && onToast("Report copied to clipboard", "success")
+                }
+                className="text-xs font-mono text-[#d6c5a8] hover:text-cream-100 flex items-center gap-1.5 transition-colors px-3 py-1.5 rounded-lg bg-[#181920] border border-[#282420] cursor-pointer"
               >
                 <Copy className="w-3.5 h-3.5" /> Copy Markdown
               </button>
             </div>
-            <div className="p-6 font-mono text-xs text-[#faf7f0] whitespace-pre-wrap leading-relaxed max-w-4xl bg-[#070709]">
-{`PRAXIS ENGINEERING REPORT
+            <div className="p-6 font-mono text-xs text-cream-100 whitespace-pre-wrap leading-relaxed max-w-4xl bg-dark-base">
+              {`PRAXIS ENGINEERING REPORT
 =========================
 Workflow ID : ${wf.id || "WF-2048"}
 Repository  : ${wf.project || "payments-api"} (Branch: ${wf.branch || "main"})

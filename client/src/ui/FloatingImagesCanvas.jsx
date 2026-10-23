@@ -19,7 +19,6 @@ const FloatingImagesCanvas = ({ className = "", id = "agentic-canvas" }) => {
     let height = 0;
     let cards = [];
     let animationFrameId;
-    let time = 0;
     const mouse = { x: 0, y: 0, targetX: 0, targetY: 0, active: false };
 
     // Image assets definition
@@ -180,7 +179,6 @@ const FloatingImagesCanvas = ({ className = "", id = "agentic-canvas" }) => {
       ctx.fillStyle = "#070709";
       ctx.fillRect(0, 0, width, height);
 
-      time += 0.016;
       mouse.x += (mouse.targetX - mouse.x) * 0.05;
       mouse.y += (mouse.targetY - mouse.y) * 0.05;
 

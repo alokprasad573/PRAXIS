@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import FloatingImagesCanvas from "../../ui/FloatingImagesCanvas";
 import logo from "../../assets/images/logo.svg";
 import AuthHeader from "./components/AuthHeader";
@@ -6,19 +7,48 @@ import SystemStatus from "./components/SystemStatus";
 import TabButton from "./components/TabButton";
 import SignIn from "./SignIn";
 import SignUp from "./SignUp";
+import { useAuth } from "../../context/useAuth";
+import { API_PATHS, BASE_URL } from "../../utils/apiPaths";
 
 const AuthPage = () => {
   const [tab, setTab] = useState("signin");
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { login } = useAuth();
+
+  // Listen for GitHub OAuth redirect with token in URL (Executes once when token is present)
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const token = params.get("token");
+    const userParam = params.get("user");
+
+    if (token) {
+      let user = null;
+      if (userParam) {
+        try {
+          user = JSON.parse(decodeURIComponent(userParam));
+        } catch {
+          user = null;
+        }
+      }
+      // Save in AuthContext & redirect directly to /app dashboard
+      login(token, user);
+      navigate("/app", { replace: true });
+    }
+  }, [location.search, login, navigate]);
+
+  const handleGitHubLogin = () => {
+    // Redirect browser to backend GitHub OAuth trigger
+    window.location.href = `${BASE_URL}${API_PATHS.AUTH.GITHUB_OAUTH}`;
+  };
 
   return (
     <div className="min-h-screen bg-dark-base text-cream-100 flex flex-col items-center justify-center relative font-sans overflow-hidden py-12">
-      {/* 3D Floating Perspective Canvas */}
       <FloatingImagesCanvas className="z-0" />
       <div className="agentic-glow-center" />
       <div className="agentic-aurora-2" />
 
       <div className="w-full max-w-md px-4 relative z-10">
-        {/* Back to Landing Link */}
         <AuthHeader />
 
         {/* Logo */}
@@ -26,7 +56,7 @@ const AuthPage = () => {
           <div className="mb-3 relative group cursor-pointer block">
             <div className="absolute -inset-1 bg-linear-to-r from-orange-600 via-amber-500 to-rose-600 rounded-2xl blur-lg opacity-40 group-hover:opacity-75 transition duration-500" />
             <div className="relative w-16 h-16 rounded-2xl bg-[#090a0e] border border-orange-500/30 flex items-center justify-center p-2 shadow-2xl">
-              <img src={logo} className="w-12 h-12" />
+              <img src={logo} className="w-12 h-12" alt="logo" />
             </div>
           </div>
           <h1 className="text-3xl font-extrabold tracking-tight text-white mb-1">
@@ -39,8 +69,6 @@ const AuthPage = () => {
 
         {/* Auth Card */}
         <div className="glass-card rounded-xl overflow-hidden relative">
-          {/* Loading Overlay */}
-
           {/* Tabs */}
           <div className="flex border-b border-[#23201c]">
             <TabButton
@@ -56,13 +84,8 @@ const AuthPage = () => {
           </div>
 
           <div className="p-6 sm:p-8">
-            {/* Sign In Form */}
-            {tab === "signin" ? (
-              <SignIn />
-            ) : (
-              /* Sign Up Form */
-              <SignUp />
-            )}
+            {tab === "signin" ? <SignIn /> : <SignUp />}
+
             {/* Divider */}
             <div className="mt-6">
               <div className="relative">
@@ -77,14 +100,15 @@ const AuthPage = () => {
               </div>
             </div>
 
-            {/* GitHub Button matching input fields width */}
+            {/* GitHub OAuth Button */}
             <div className="mt-5">
               <button
                 type="button"
+                onClick={handleGitHubLogin}
                 className="w-full flex items-center justify-center px-4 py-2.5 bg-[#14151b] hover:bg-[#1c1e26] text-cream-100 text-sm font-mono rounded-lg transition-colors border border-[#2d2924] hover:border-orange-500/40 cursor-pointer shadow-sm"
               >
                 <svg
-                  className="h-7.5 w-7.5 mr-2.5"
+                  className="h-5 w-5 mr-2.5"
                   fill="currentColor"
                   viewBox="0 0 24 24"
                 >
@@ -100,13 +124,11 @@ const AuthPage = () => {
           </div>
         </div>
 
-        {/* Footer info */}
         <div className="mt-6 text-center text-xs text-[#8a7f70] font-mono flex items-center justify-center gap-2">
           <span className="w-1.5 h-1.5 rounded-full bg-orange-500" />
           PRAXIS v2.0.2 Beta
         </div>
       </div>
-      {/* System Status Indicator */}
       <SystemStatus />
     </div>
   );

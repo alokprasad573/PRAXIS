@@ -63,7 +63,7 @@ const AgentsView = ({ agents = [], onNavigate }) => {
         );
       default:
         return (
-          <span className="px-2 py-0.5 rounded text-[10px] bg-[#181920] text-[#faf7f0] font-mono">
+          <span className="px-2 py-0.5 rounded text-[10px] bg-[#181920] text-cream-100 font-mono">
             {status}
           </span>
         );
@@ -74,7 +74,7 @@ const AgentsView = ({ agents = [], onNavigate }) => {
     <div className="space-y-8 animate-fadeInUp">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-extrabold text-[#faf7f0] tracking-tight">
+          <h1 className="text-3xl font-extrabold text-cream-100 tracking-tight">
             Agent Library
           </h1>
           <p className="text-xs text-[#b8ab97] font-mono mt-1">
@@ -88,13 +88,13 @@ const AgentsView = ({ agents = [], onNavigate }) => {
             value={filter}
             onChange={(e) => setFilter(e.target.value)}
             placeholder="Filter capabilities, tools, models..."
-            className="bg-[#0e0f14] border border-[#26231f] text-[#faf7f0] text-xs font-mono rounded-lg pl-10 pr-3 py-2.5 focus:outline-none focus:border-orange-500 w-full sm:w-72 placeholder-[#6b645b]"
+            className="bg-dark-card border border-[#26231f] text-cream-100 text-xs font-mono rounded-lg pl-10 pr-3 py-2.5 focus:outline-none focus:border-orange-500 w-full sm:w-72 placeholder-[#6b645b]"
           />
         </div>
       </div>
 
       {/* Featured Agent Showcase: Unit Test Agent */}
-      <div className="bg-gradient-to-r from-[#14120f] via-[#1a1510] to-[#0e0f14] border border-orange-500/35 rounded-xl p-6 shadow-[0_4px_30px_rgba(249,115,22,0.1)] relative overflow-hidden">
+      <div className="bg-linear-to-r from-[#14120f] via-[#1a1510] to-dark-card border border-orange-500/35 rounded-xl p-6 shadow-[0_4px_30px_rgba(249,115,22,0.1)] relative overflow-hidden">
         <div className="flex items-center justify-between gap-3 mb-3">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-orange-500/20 text-orange-400 flex items-center justify-center border border-orange-500/40 shadow-[0_0_12px_rgba(249,115,22,0.3)]">
@@ -102,7 +102,7 @@ const AgentsView = ({ agents = [], onNavigate }) => {
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h2 className="text-lg font-bold text-[#faf7f0]">
+                <h2 className="text-lg font-bold text-cream-100">
                   Unit Test Agent
                 </h2>
                 <span className="text-[10px] font-mono font-bold bg-orange-500/20 text-orange-300 px-2 py-0.5 rounded border border-orange-500/40 uppercase tracking-wider">
@@ -124,16 +124,16 @@ const AgentsView = ({ agents = [], onNavigate }) => {
         </div>
 
         {/* Iterative Loop Visualizer */}
-        <div className="flex flex-wrap items-center gap-2 text-xs font-mono my-4 p-3 bg-[#070709] rounded-xl border border-[#23201d]">
-          <span className="bg-[#14151b] border border-[#282420] text-[#faf7f0] px-3 py-1 rounded-md">
+        <div className="flex flex-wrap items-center gap-2 text-xs font-mono my-4 p-3 bg-dark-base rounded-xl border border-dark-border">
+          <span className="bg-[#14151b] border border-[#282420] text-cream-100 px-3 py-1 rounded-md">
             Analyze Source
           </span>
           <ArrowRight className="w-3 h-3 text-orange-500" />
-          <span className="bg-[#14151b] border border-[#282420] text-[#faf7f0] px-3 py-1 rounded-md">
+          <span className="bg-[#14151b] border border-[#282420] text-cream-100 px-3 py-1 rounded-md">
             Identify Gaps
           </span>
           <ArrowRight className="w-3 h-3 text-orange-500" />
-          <span className="bg-[#14151b] border border-[#282420] text-[#faf7f0] px-3 py-1 rounded-md">
+          <span className="bg-[#14151b] border border-[#282420] text-cream-100 px-3 py-1 rounded-md">
             Synthesize Tests
           </span>
           <ArrowRight className="w-3 h-3 text-orange-500" />
@@ -141,7 +141,7 @@ const AgentsView = ({ agents = [], onNavigate }) => {
             Run Sandbox
           </span>
           <ArrowRight className="w-3 h-3 text-orange-500" />
-          <span className="bg-[#14151b] border border-[#282420] text-[#faf7f0] px-3 py-1 rounded-md">
+          <span className="bg-[#14151b] border border-[#282420] text-cream-100 px-3 py-1 rounded-md">
             Evaluate Failures
           </span>
           <ArrowRight className="w-3 h-3 text-orange-500" />
@@ -152,7 +152,7 @@ const AgentsView = ({ agents = [], onNavigate }) => {
 
         <div className="flex flex-wrap items-center gap-4 text-xs font-mono text-[#d6c5a8] pt-1">
           <div>
-            Initial: <span className="text-[#faf7f0] font-bold">48%</span>
+            Initial: <span className="text-cream-100 font-bold">48%</span>
           </div>
           <div className="text-[#524c45]">→</div>
           <div>
@@ -164,7 +164,7 @@ const AgentsView = ({ agents = [], onNavigate }) => {
           </div>
           <span className="text-[#363028]">|</span>
           <div className="text-[#8a7f70]">
-            Generated: <span className="text-[#faf7f0]">43 Tests</span>
+            Generated: <span className="text-cream-100">43 Tests</span>
           </div>
           <div className="text-emerald-400 font-bold">41 Passed</div>
           <div className="text-rose-400 font-bold">2 In Retry</div>
@@ -181,7 +181,7 @@ const AgentsView = ({ agents = [], onNavigate }) => {
             <div
               key={agent.id}
               onClick={() => onNavigate("agent-detail", agent.id)}
-              className="bg-[#0e0f14] border border-[#201d1a] hover:border-orange-500/40 rounded-xl p-5 flex flex-col justify-between transition-all hover:shadow-[0_4px_20px_rgba(249,115,22,0.1)] group cursor-pointer"
+              className="bg-dark-card border border-[#201d1a] hover:border-orange-500/40 rounded-xl p-5 flex flex-col justify-between transition-all hover:shadow-[0_4px_20px_rgba(249,115,22,0.1)] group cursor-pointer"
             >
               <div>
                 <div className="flex items-start justify-between mb-4">
@@ -191,7 +191,7 @@ const AgentsView = ({ agents = [], onNavigate }) => {
                   {getStatusBadge(agent.status)}
                 </div>
 
-                <h3 className="text-sm font-bold text-[#faf7f0] group-hover:text-orange-300 transition-colors mb-1">
+                <h3 className="text-sm font-bold text-cream-100 group-hover:text-orange-300 transition-colors mb-1">
                   {agent.name}
                 </h3>
                 <div className="text-[10px] font-mono text-orange-400/80 mb-3">
@@ -227,7 +227,7 @@ const AgentsView = ({ agents = [], onNavigate }) => {
                 </div>
                 <div>
                   Avg:{" "}
-                  <span className="text-[#faf7f0]">
+                  <span className="text-cream-100">
                     {agent.avgDuration || "2m"}
                   </span>
                 </div>

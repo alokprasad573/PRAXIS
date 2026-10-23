@@ -56,7 +56,7 @@ const ProjectsView = ({
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-extrabold text-[#faf7f0] tracking-tight">
+          <h1 className="text-3xl font-extrabold text-cream-100 tracking-tight">
             Connected Projects
           </h1>
           <p className="text-xs text-[#b8ab97] font-mono mt-1">
@@ -67,7 +67,7 @@ const ProjectsView = ({
           <button
             type="button"
             onClick={onOpenConnectModal}
-            className="bg-[#14151b] hover:bg-[#1c1d25] text-[#faf7f0] px-3.5 py-2 rounded-lg transition-colors border border-[#282420] flex items-center gap-1.5 cursor-pointer"
+            className="bg-[#14151b] hover:bg-[#1c1d25] text-cream-100 px-3.5 py-2 rounded-lg transition-colors border border-[#282420] flex items-center gap-1.5 cursor-pointer"
           >
             <FolderGit2 className="w-3.5 h-3.5 text-orange-400" /> Connect
             GitHub
@@ -83,7 +83,27 @@ const ProjectsView = ({
       </div>
 
       {/* Project Cards Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      {projects.length === 0 ? (
+        <div className="text-center py-16 px-4 border border-dashed border-[#282420] rounded-xl bg-[#0b0c10] font-mono">
+          <div className="w-12 h-12 rounded-xl bg-orange-500/10 border border-orange-500/25 flex items-center justify-center mx-auto mb-3 text-orange-400">
+            <FolderGit2 className="w-6 h-6" />
+          </div>
+          <h4 className="text-sm font-bold text-cream-100 mb-1">
+            No Projects Connected
+          </h4>
+          <p className="text-xs text-[#8a7f70] max-w-sm mx-auto mb-4">
+            Connect your repository to begin indexing code into RAG.
+          </p>
+          <button
+            type="button"
+            onClick={onOpenConnectModal}
+            className="bg-orange-600 hover:bg-orange-500 text-white px-4 py-2 rounded-lg text-xs font-bold shadow-md cursor-pointer transition-all"
+          >
+            Connect Repository
+          </button>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {projects.map((p) => {
           const lang = p.language || p.lang || "Node.js";
           const health = p.health || p.status || "healthy";
@@ -96,7 +116,7 @@ const ProjectsView = ({
           return (
             <div
               key={p.id}
-              className="bg-[#0e0f14] border border-[#201d1a] hover:border-orange-500/40 rounded-xl p-6 transition-all hover:shadow-[0_4px_20px_rgba(249,115,22,0.1)] flex flex-col justify-between"
+              className="bg-dark-card border border-[#201d1a] hover:border-orange-500/40 rounded-xl p-6 transition-all hover:shadow-[0_4px_20px_rgba(249,115,22,0.1)] flex flex-col justify-between"
             >
               <div>
                 <div className="flex items-center justify-between mb-3">
@@ -106,7 +126,7 @@ const ProjectsView = ({
                         lang,
                       )}`}
                     />
-                    <h3 className="text-base font-bold text-[#faf7f0] font-mono">
+                    <h3 className="text-base font-bold text-cream-100 font-mono">
                       {p.name}
                     </h3>
                   </div>
@@ -117,18 +137,18 @@ const ProjectsView = ({
                   <span className="text-[#d6c5a8]">{p.repo}</span>
                   <span className="text-[#524c45]">•</span>
                   <span>
-                    Branch: <b className="text-[#faf7f0]">{p.branch}</b>
+                    Branch: <b className="text-cream-100">{p.branch}</b>
                   </span>
                   <span className="text-[#524c45]">•</span>
                   <span>{lang}</span>
                 </div>
 
-                <div className="grid grid-cols-3 gap-3 p-3 rounded-lg bg-[#070709] border border-[#201d1a] font-mono text-xs mb-5">
+                <div className="grid grid-cols-3 gap-3 p-3 rounded-lg bg-dark-base border border-[#201d1a] font-mono text-xs mb-5">
                   <div>
                     <div className="text-[10px] text-[#8a7f70] uppercase">
                       Agents
                     </div>
-                    <div className="text-[#faf7f0] font-bold mt-0.5">
+                    <div className="text-cream-100 font-bold mt-0.5">
                       {agentsCount} Active
                     </div>
                   </div>
@@ -136,7 +156,7 @@ const ProjectsView = ({
                     <div className="text-[10px] text-[#8a7f70] uppercase">
                       Workflows
                     </div>
-                    <div className="text-[#faf7f0] font-bold mt-0.5">
+                    <div className="text-cream-100 font-bold mt-0.5">
                       {p.workflows || 8}
                     </div>
                   </div>
@@ -157,7 +177,7 @@ const ProjectsView = ({
                   <button
                     type="button"
                     onClick={() => onNavigate("workflows")}
-                    className="px-3 py-1.5 rounded-lg bg-[#14151b] border border-[#282420] text-[#d6c5a8] hover:text-[#faf7f0] hover:border-orange-500/30 transition-colors cursor-pointer"
+                    className="px-3 py-1.5 rounded-lg bg-[#14151b] border border-[#282420] text-[#d6c5a8] hover:text-cream-100 hover:border-orange-500/30 transition-colors cursor-pointer"
                   >
                     Workflows
                   </button>
@@ -174,6 +194,7 @@ const ProjectsView = ({
           );
         })}
       </div>
+      )}
     </div>
   );
 };

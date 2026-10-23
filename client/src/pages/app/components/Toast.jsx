@@ -42,16 +42,16 @@ const Toast = ({ toasts = [], onDismiss }) => {
         return (
           <div
             key={toast.id}
-            className={`pointer-events-auto flex items-center gap-3 pl-4 pr-3 py-3 rounded-xl border shadow-[0_10px_30px_rgba(0,0,0,0.8)] bg-[#0e0f14] ${s.border} ${s.text} min-w-[280px] max-w-sm transform transition-all duration-300 animate-fadeInUp`}
+            className={`pointer-events-auto flex items-center gap-3 pl-4 pr-3 py-3 rounded-xl border shadow-[0_10px_30px_rgba(0,0,0,0.8)] bg-dark-card ${s.border} ${s.text} min-w-70w-sm transform transition-all duration-300 animate-fadeInUp`}
           >
             <IconComponent className="w-4 h-4 shrink-0" />
-            <span className="flex-1 text-xs font-mono text-[#faf7f0] leading-snug">
+            <span className="flex-1 text-xs font-mono text-cream-100 leading-snug">
               {toast.message}
             </span>
             <button
               type="button"
               onClick={() => onDismiss && onDismiss(toast.id)}
-              className="text-[#8a7f70] hover:text-[#faf7f0] p-1 rounded hover:bg-[#181920] transition-colors shrink-0 cursor-pointer"
+              className="text-[#8a7f70] hover:text-cream-100 p-1 rounded hover:bg-[#181920] transition-colors shrink-0 cursor-pointer"
             >
               <X className="w-3.5 h-3.5" />
             </button>

@@ -7,7 +7,7 @@ const TeamView = ({ members = mockTeamMembers, onToast }) => {
     <div className="max-w-5xl mx-auto space-y-8 animate-fadeInUp">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-extrabold text-[#faf7f0] tracking-tight">
+          <h1 className="text-3xl font-extrabold text-cream-100 tracking-tight">
             Engineering Team
           </h1>
           <p className="text-xs text-[#b8ab97] font-mono mt-1">
@@ -25,9 +25,9 @@ const TeamView = ({ members = mockTeamMembers, onToast }) => {
         </button>
       </div>
 
-      <div className="bg-[#0e0f14] border border-[#201d1a] rounded-xl overflow-hidden shadow-xl">
+      <div className="bg-dark-card border border-[#201d1a] rounded-xl overflow-hidden shadow-xl">
         <table className="w-full text-xs">
-          <thead className="text-[10px] font-mono text-[#a89f91] uppercase bg-[#070709] border-b border-[#201d1a]">
+          <thead className="text-[10px] font-mono text-[#a89f91] uppercase bg-dark-base border-b border-[#201d1a]">
             <tr>
               <th className="px-5 py-3 text-left font-semibold">Member</th>
               <th className="px-5 py-3 text-left font-semibold">Workspace Role</th>
@@ -41,11 +41,11 @@ const TeamView = ({ members = mockTeamMembers, onToast }) => {
               <tr key={m.email} className="hover:bg-[#14151b] transition-colors">
                 <td className="px-5 py-4">
                   <div className="flex items-center gap-3 font-mono">
-                    <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-orange-600 to-amber-500 flex items-center justify-center text-xs font-bold text-white shadow-sm border border-orange-400/30 shrink-0">
+                    <div className="w-8 h-8 rounded-full bg-linear-to-trrom-orange-600 to-amber-500 flex items-center justify-center text-xs font-bold text-white shadow-sm border border-orange-400/30 shrink-0">
                       {m.initials}
                     </div>
                     <div>
-                      <div className="text-[#faf7f0] font-bold text-xs">{m.name}</div>
+                      <div className="text-cream-100 font-bold text-xs">{m.name}</div>
                       <div className="text-[11px] text-[#8a7f70]">{m.email}</div>
                     </div>
                   </div>

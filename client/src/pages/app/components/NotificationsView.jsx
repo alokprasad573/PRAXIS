@@ -62,7 +62,7 @@ const NotificationsView = ({ onToast }) => {
     <div className="max-w-5xl mx-auto space-y-6 animate-fadeInUp">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-extrabold text-[#faf7f0] tracking-tight">
+          <h1 className="text-3xl font-extrabold text-cream-100 tracking-tight">
             Notifications &amp; Telemetry Alerts
           </h1>
           <p className="text-xs text-[#b8ab97] font-mono mt-1">
@@ -73,7 +73,7 @@ const NotificationsView = ({ onToast }) => {
           <button
             type="button"
             onClick={markAllRead}
-            className="px-4 py-2 bg-[#14151b] hover:bg-[#1c1d25] text-[#faf7f0] font-bold rounded-lg border border-[#282420] transition-colors cursor-pointer"
+            className="px-4 py-2 bg-[#14151b] hover:bg-[#1c1d25] text-cream-100 font-bold rounded-lg border border-[#282420] transition-colors cursor-pointer"
           >
             Mark All Read
           </button>
@@ -91,7 +91,7 @@ const NotificationsView = ({ onToast }) => {
                 className={`pb-3 transition-colors cursor-pointer ${
                   filterTab === tab
                     ? "text-orange-400 font-bold border-b-2 border-orange-500"
-                    : "text-[#8a7f70] hover:text-[#faf7f0]"
+                    : "text-[#8a7f70] hover:text-cream-100"
                 }`}
               >
                 {tab}
@@ -102,7 +102,7 @@ const NotificationsView = ({ onToast }) => {
       </div>
 
       <div className="mb-6">
-        <h3 className="text-xs font-bold text-[#faf7f0] uppercase font-mono mb-3">
+        <h3 className="text-xs font-bold text-cream-100 uppercase font-mono mb-3">
           Today
         </h3>
         <div className="space-y-3">
@@ -111,7 +111,7 @@ const NotificationsView = ({ onToast }) => {
             return (
               <div
                 key={n.id}
-                className={`flex items-start gap-4 p-4 bg-[#0e0f14] border border-[#201d1a] rounded-xl hover:border-orange-500/40 cursor-pointer transition-all ${
+                className={`flex items-start gap-4 p-4 bg-dark-card border border-[#201d1a] rounded-xl hover:border-orange-500/40 cursor-pointer transition-all ${
                   n.unread
                     ? "border-l-4 border-l-orange-500 shadow-[0_0_15px_rgba(249,115,22,0.08)]"
                     : ""
@@ -122,7 +122,7 @@ const NotificationsView = ({ onToast }) => {
                 </div>
                 <div className="flex-1 font-mono">
                   <div className="flex items-start justify-between">
-                    <p className="text-xs text-[#faf7f0] font-bold">{n.title}</p>
+                    <p className="text-xs text-cream-100 font-bold">{n.title}</p>
                     <span className="text-[10px] text-[#8a7f70] ml-3 shrink-0">
                       {n.time}
                     </span>

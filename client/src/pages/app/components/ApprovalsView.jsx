@@ -15,7 +15,7 @@ const ApprovalsView = ({
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2.5 mb-1.5">
-            <h1 className="text-3xl font-extrabold text-[#faf7f0] tracking-tight">
+            <h1 className="text-3xl font-extrabold text-cream-100 tracking-tight">
               Human-in-the-Loop Approvals
             </h1>
             <span
@@ -33,12 +33,12 @@ const ApprovalsView = ({
 
       {/* Active Pending Approvals */}
       <div className="space-y-6">
-        <h2 className="text-xs font-bold font-mono text-[#faf7f0] uppercase tracking-wider flex items-center gap-2">
+        <h2 className="text-xs font-bold font-mono text-cream-100 uppercase tracking-wider flex items-center gap-2">
           <AlertCircle className="w-4 h-4 text-orange-500" /> Pending Decision Requests
         </h2>
 
         {approvals.length === 0 ? (
-          <div className="bg-[#0e0f14] border border-[#201d1a] rounded-xl p-8 text-center font-mono">
+          <div className="bg-dark-card border border-[#201d1a] rounded-xl p-8 text-center font-mono">
             <p className="text-sm text-[#b8ab97]">
               No pending approval gates. Swarm operations are cleared for execution.
             </p>
@@ -52,7 +52,7 @@ const ApprovalsView = ({
                 <div
                   key={a.id}
                   id={`approval-${a.id}`}
-                  className={`bg-[#0e0f14] border ${
+                  className={`bg-dark-card border ${
                     isHigh
                       ? "border-orange-500/40 shadow-[0_0_25px_rgba(249,115,22,0.1)]"
                       : "border-[#282420]"
@@ -71,7 +71,7 @@ const ApprovalsView = ({
                           {a.policyTriggered || "Governance Gate"}
                         </span>
                         <span className="text-[#524c45]">•</span>
-                        <span className="text-[#faf7f0] font-semibold">
+                        <span className="text-cream-100 font-semibold">
                           {a.agentName}
                         </span>
                         <span className="text-[#524c45]">•</span>
@@ -79,7 +79,7 @@ const ApprovalsView = ({
                         <span className="text-[#524c45]">•</span>
                         <span className="text-[#78716c]">{a.time || "Recently"}</span>
                       </div>
-                      <h3 className="text-lg font-bold text-[#faf7f0]">
+                      <h3 className="text-lg font-bold text-cream-100">
                         {a.title}
                       </h3>
                     </div>
@@ -96,9 +96,9 @@ const ApprovalsView = ({
                     </div>
                   </div>
 
-                  <div className="bg-[#070709] rounded-lg border border-[#23201d] p-4 text-xs font-mono mb-4 text-[#d6c5a8] leading-relaxed">
+                  <div className="bg-dark-base rounded-lg border border-dark-border p-4 text-xs font-mono mb-4 text-[#d6c5a8] leading-relaxed">
                     <p className="mb-2">
-                      <b className="text-[#faf7f0]">Reason:</b> {a.reason}
+                      <b className="text-cream-100">Reason:</b> {a.reason}
                     </p>
                     <p className="text-orange-300">
                       <b className="text-orange-400">Impact Assessment:</b>{" "}
@@ -114,7 +114,7 @@ const ApprovalsView = ({
                       {(a.filesAffected || []).map((f) => (
                         <span
                           key={f}
-                          className="text-[11px] font-mono bg-[#14151b] border border-[#26231f] text-[#faf7f0] px-2.5 py-1 rounded flex items-center gap-1.5"
+                          className="text-[11px] font-mono bg-[#14151b] border border-[#26231f] text-cream-100 px-2.5 py-1 rounded flex items-center gap-1.5"
                         >
                           <File className="w-3 h-3 text-orange-400" /> {f}
                         </span>
@@ -135,7 +135,7 @@ const ApprovalsView = ({
                       onClick={() =>
                         onToast && onToast("Change request sent to agent", "info")
                       }
-                      className="bg-[#14151b] hover:bg-[#1c1d25] text-[#faf7f0] border border-[#282420] px-4 py-2 rounded-lg transition-colors cursor-pointer"
+                      className="bg-[#14151b] hover:bg-[#1c1d25] text-cream-100 border border-[#282420] px-4 py-2 rounded-lg transition-colors cursor-pointer"
                     >
                       Request Changes
                     </button>
@@ -155,14 +155,14 @@ const ApprovalsView = ({
       </div>
 
       {/* Approval Audit Log Table */}
-      <div className="bg-[#0e0f14] border border-[#201d1a] rounded-xl overflow-hidden shadow-xl">
+      <div className="bg-dark-card border border-[#201d1a] rounded-xl overflow-hidden shadow-xl">
         <div className="p-4 border-b border-[#201d1a] bg-[#121319] flex items-center justify-between">
-          <h3 className="text-xs font-bold font-mono text-[#faf7f0] uppercase tracking-wider">
+          <h3 className="text-xs font-bold font-mono text-cream-100 uppercase tracking-wider">
             Governance Audit Trail
           </h3>
         </div>
         <table className="w-full text-left text-xs whitespace-nowrap">
-          <thead className="bg-[#070709] text-[#a89f91] font-mono uppercase tracking-wider border-b border-[#201d1a]">
+          <thead className="bg-dark-base text-[#a89f91] font-mono uppercase tracking-wider border-b border-[#201d1a]">
             <tr>
               <th className="px-4 py-3 font-semibold">Timestamp</th>
               <th className="px-4 py-3 font-semibold">Workflow</th>
@@ -172,12 +172,12 @@ const ApprovalsView = ({
               <th className="px-4 py-3 font-semibold">Review Duration</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-[#201d1a] text-[#faf7f0] font-mono">
+          <tbody className="divide-y divide-[#201d1a] text-cream-100 font-mono">
             {history.map((h) => (
               <tr key={h.date + h.action} className="hover:bg-[#14151b] transition-colors">
                 <td className="px-4 py-3 text-[#8a7f70]">{h.date}</td>
                 <td className="px-4 py-3 font-bold text-orange-400">{h.workflow}</td>
-                <td className="px-4 py-3 font-medium text-[#faf7f0]">{h.action}</td>
+                <td className="px-4 py-3 font-medium text-cream-100">{h.action}</td>
                 <td className="px-4 py-3 text-[#d6c5a8]">{h.decidedBy}</td>
                 <td className="px-4 py-3">
                   <span

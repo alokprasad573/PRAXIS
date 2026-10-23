@@ -31,8 +31,8 @@ const Sidebar = ({
   onOpenConnectModal,
   mobileOpen,
   onCloseMobile,
-  pendingApprovalsCount = 2,
-  unreadNotificationsCount = 3,
+  pendingApprovalsCount = 0,
+  unreadNotificationsCount = 0,
 }) => {
   const [projectSwitcherOpen, setProjectSwitcherOpen] = useState(false);
   const [projectSearch, setProjectSearch] = useState("");
@@ -62,7 +62,7 @@ const Sidebar = ({
         className={`w-full flex items-center justify-between px-2.5 py-2 text-xs font-medium rounded-lg transition-all nav-link group cursor-pointer ${
           isActive
             ? "nav-active bg-orange-500/15 text-orange-400 border-r-2 border-orange-500 font-semibold"
-            : "text-[#b8ab97] hover:bg-[#181920] hover:text-[#faf7f0]"
+            : "text-[#b8ab97] hover:bg-[#181920] hover:text-cream-100"
         }`}
         title={label}
       >
@@ -220,9 +220,9 @@ const Sidebar = ({
                 />
                 <span
                   id="active-project-name"
-                  className="text-xs font-bold text-[#faf7f0] font-mono truncate"
+                  className="text-xs font-bold text-cream-100 font-mono truncate"
                 >
-                  {activeProject?.name || "payments-api"}
+                  {activeProject?.name || "Select Project"}
                 </span>
                 <ChevronDown
                   id="project-switcher-chevron"
@@ -241,7 +241,7 @@ const Sidebar = ({
           {projectSwitcherOpen && (
             <div
               id="project-switcher-dropdown"
-              className="absolute left-2 right-2 top-[calc(100%+4px)] z-50 bg-[#0e0f14] border border-[#2a2520] rounded-xl shadow-[0_15px_40px_rgba(0,0,0,0.85),0_0_20px_rgba(249,115,22,0.15)] overflow-hidden font-mono animate-fadeInUp"
+              className="absolute left-2 right-2 top-[calc(100%+4px)] z-50 bg-dark-card border border-[#2a2520] rounded-xl shadow-[0_15px_40px_rgba(0,0,0,0.85),0_0_20px_rgba(249,115,22,0.15)] overflow-hidden font-mono animate-fadeInUp"
             >
               <div className="p-2.5 border-b border-[#201d1a] bg-[#121319]">
                 <div className="text-[10px] uppercase tracking-wider text-[#a89f91] font-bold flex items-center justify-between">
@@ -265,7 +265,7 @@ const Sidebar = ({
                     value={projectSearch}
                     onChange={(e) => setProjectSearch(e.target.value)}
                     placeholder="Filter projects..."
-                    className="w-full bg-[#070709] border border-[#23201d] rounded-lg pl-7 pr-2 py-1 text-[11px] text-[#faf7f0] placeholder-[#6b645b] focus:outline-none focus:border-orange-500"
+                    className="w-full bg-dark-base border border-dark-border rounded-lg pl-7 pr-2 py-1 text-[11px] text-cream-100 placeholder-[#6b645b] focus:outline-none focus:border-orange-500"
                     autoComplete="off"
                   />
                 </div>
@@ -278,7 +278,7 @@ const Sidebar = ({
               >
                 {filteredProjects.length === 0 ? (
                   <div className="py-4 text-center text-xs text-[#8a7f70]">
-                    No projects matching &quot;{projectSearch}&quot;
+                    No projects found
                   </div>
                 ) : (
                   filteredProjects.map((p) => {
@@ -294,7 +294,7 @@ const Sidebar = ({
                         className={`w-full flex items-center justify-between p-2 rounded-lg text-left transition-all cursor-pointer ${
                           isSelected
                             ? "bg-orange-500/15 border border-orange-500/40 text-white shadow-sm"
-                            : "hover:bg-[#181920] text-[#d6c5a8] hover:text-[#faf7f0] border border-transparent"
+                            : "hover:bg-[#181920] text-[#d6c5a8] hover:text-cream-100 border border-transparent"
                         }`}
                       >
                         <div className="flex items-center gap-2.5 overflow-hidden">
@@ -305,7 +305,7 @@ const Sidebar = ({
                           />
                           <div className="flex flex-col overflow-hidden">
                             <div className="flex items-center gap-1.5">
-                              <span className="text-xs font-bold font-mono truncate text-[#faf7f0]">
+                              <span className="text-xs font-bold font-mono truncate text-cream-100">
                                 {p.name}
                               </span>
                               {isSelected && (
@@ -351,7 +351,7 @@ const Sidebar = ({
                     setProjectSwitcherOpen(false);
                     onNavigate("projects");
                   }}
-                  className="text-[#8a7f70] hover:text-[#faf7f0] transition-colors cursor-pointer"
+                  className="text-[#8a7f70] hover:text-cream-100 transition-colors cursor-pointer"
                 >
                   All Projects →
                 </button>

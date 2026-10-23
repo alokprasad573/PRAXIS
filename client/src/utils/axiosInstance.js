@@ -15,7 +15,10 @@ const axiosInstance = axios.create({
 // Request Interceptor
 axiosInstance.interceptors.request.use(
   (config) => {
-    const accessToken = getCookie("token") || localStorage.getItem("token");
+    const accessToken =
+      getCookie("token") ||
+      localStorage.getItem("token") ||
+      sessionStorage.getItem("token");
 
     if (accessToken) {
       config.headers.Authorization = `Bearer ${accessToken}`;
@@ -34,20 +37,27 @@ axiosInstance.interceptors.response.use(
     return response;
   },
   (error) => {
-    //Handle common errors globally
     if (error.response) {
-      if (error.response.status === 401) {
-        //Redirect to login page
-        window.location.href = "/";
-      } else if (error.response.status == 500) {
+      const url = error.config?.url || "";
+      const isAuthEndpoint =
+        url.includes("/login") || url.includes("/register") || url.includes("/auth");
+        
+      if (error.response.status === 401 && !isAuthEndpoint) {
+        localStorage.removeItem("token");
+        localStorage.removeItem("praxis_token");
+        sessionStorage.removeItem("token");
+        sessionStorage.removeItem("praxis_token");
+        if (window.location.pathname !== "/auth" && window.location.pathname !== "/") {
+          window.location.href = "/auth";
+        }
+      } else if (error.response.status === 500) {
         console.error("Server error. Please try again later.");
       }
     } else if (error.code === "ECONNABORTED") {
       console.error("Request timeout. Please try again later.");
     }
-
     return Promise.reject(error);
-  },
+  }
 );
 
 export default axiosInstance;

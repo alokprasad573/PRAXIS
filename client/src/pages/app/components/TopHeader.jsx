@@ -7,7 +7,7 @@ const TopHeader = ({
   onNavigate,
   onSignOut,
   user = { name: "Alok Prasad", role: "Workspace Admin", initials: "AP" },
-  unreadCount = 3,
+  unreadCount = 0,
 }) => {
   const getBreadcrumbLabel = (page) => {
     const labels = {
@@ -54,7 +54,7 @@ const TopHeader = ({
           <Terminal className="w-3.5 h-3.5 text-orange-500" />
           <span id="breadcrumb" className="text-[#8a7f70]">
             ~/praxis/
-            <span className="text-[#f5eedf] font-medium" id="breadcrumb-current">
+            <span className="text-cream-200 font-medium" id="breadcrumb-current">
               {getBreadcrumbLabel(activePage)}
             </span>
           </span>
@@ -74,7 +74,7 @@ const TopHeader = ({
         <div
           id="search-trigger"
           onClick={onOpenCommandPalette}
-          className="flex items-center gap-2 bg-[#13141a] border border-[#26231f] rounded-lg px-2.5 sm:px-3 py-1.5 text-xs text-[#b8ab97] w-36 sm:w-48 lg:w-64 cursor-pointer hover:border-orange-500/40 hover:text-[#faf7f0] transition-colors"
+          className="flex items-center gap-2 bg-dark-panell border border-[#26231f] rounded-lg px-2.5 sm:px-3 py-1.5 text-xs text-[#b8ab97] w-36 sm:w-48 lg:w-64 cursor-pointer hover:border-orange-500/40 hover:text-cream-100 transition-colors"
         >
           <Search className="w-3.5 h-3.5 text-orange-400" />
           <span className="flex-1 text-left font-mono truncate">Search...</span>
@@ -99,16 +99,16 @@ const TopHeader = ({
         </button>
 
         {/* User profile (Static Badge + Sign Out) */}
-        <div className="flex items-center gap-2.5 pl-2 sm:pl-3 pr-1.5 py-1 rounded-xl border border-[#201d1a] bg-[#0e0f14]">
+        <div className="flex items-center gap-2.5 pl-2 sm:pl-3 pr-1.5 py-1 rounded-xl border border-[#201d1a] bg-dark-card">
           <div className="flex items-center gap-2.5 overflow-hidden">
-            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-gradient-to-tr from-orange-600 to-amber-500 flex items-center justify-center shrink-0 relative border border-orange-400/40 shadow-sm">
+            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-linear-to-tr from-orange-600 to-amber-500 flex items-center justify-center shrink-0 relative border border-orange-400/40 shadow-sm">
               <span className="text-xs font-bold text-white">
                 {user.initials || "AP"}
               </span>
               <div className="absolute bottom-0 right-0 w-2 h-2 bg-emerald-400 rounded-full border-2 border-[#0c0d12]" />
             </div>
             <div className="hidden md:flex flex-col overflow-hidden text-left">
-              <span className="text-xs font-semibold text-[#faf7f0] truncate">
+              <span className="text-xs font-semibold text-cream-100 truncate">
                 {user.name || "Alok Prasad"}
               </span>
               <span className="text-[9px] text-orange-400 font-mono">
