@@ -404,7 +404,7 @@ const WorkflowDetailView = ({
                     Security Agent
                   </span>
                   <span className="text-[10px] font-mono text-emerald-400 mt-0.5">
-                    0 Vulns
+                    0 Vulnerability
                   </span>
                 </div>
 
