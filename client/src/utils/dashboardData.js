@@ -676,3 +676,247 @@ export const mockAnalyticsData = {
   days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 };
 
+export const mockActiveWorkflowRuns = [
+  {
+    id: "run-8832",
+    agent: "Code Analysis Agent",
+    workflow: "WF-2048 Security Patch",
+    status: "Running",
+    duration: "2m 14s",
+    step: "Analyzing AST for injection vectors...",
+  },
+  {
+    id: "run-8833",
+    agent: "Unit Test Agent",
+    workflow: "WF-2048 Coverage Loop",
+    status: "Running",
+    duration: "45s",
+    step: "Generating mocks for auth service (Loop 2)...",
+  },
+];
+export const activeRuns = mockActiveWorkflowRuns;
+
+export const mockHistoricalWorkflowRuns = [
+  {
+    id: "run-8831",
+    workflow: "WF-2047 Security Scan",
+    agent: "Review Agent",
+    status: "Success",
+    started: "1h ago",
+    duration: "1m 12s",
+    tokens: "14,200",
+    retries: 0,
+    trigger: "System",
+  },
+  {
+    id: "run-8830",
+    workflow: "WF-2047 Security Scan",
+    agent: "Code Analysis Agent",
+    status: "Success",
+    started: "1h 5m ago",
+    duration: "3m 45s",
+    tokens: "89,450",
+    retries: 1,
+    trigger: "System",
+  },
+  {
+    id: "run-8829",
+    workflow: "WF-2044 Code Refactor",
+    agent: "Research Agent",
+    status: "Failed",
+    started: "3h ago",
+    duration: "5m 10s",
+    tokens: "120,500",
+    retries: 2,
+    trigger: "Manual",
+  },
+  {
+    id: "run-8828",
+    workflow: "WF-2045 Deploy Prod",
+    agent: "DevOps Agent",
+    status: "Success",
+    started: "Yesterday",
+    duration: "4m 20s",
+    tokens: "2,100",
+    retries: 0,
+    trigger: "Admin",
+  },
+];
+export const historicalRuns = mockHistoricalWorkflowRuns;
+
+export const mockAgentRuns = [
+  {
+    id: "agt-1104",
+    agent: "Code Analysis Agent",
+    task: "Analyze AST for payments API",
+    status: "Success",
+    time: "10 min ago",
+    duration: "45s",
+    tokens: "12,400",
+  },
+  {
+    id: "agt-1103",
+    agent: "Security Agent",
+    task: "Audit authentication JWT validator",
+    status: "Success",
+    time: "1h ago",
+    duration: "2m 10s",
+    tokens: "45,000",
+  },
+  {
+    id: "agt-1102",
+    agent: "Review Agent",
+    task: "Synthesize security report",
+    status: "Success",
+    time: "2h ago",
+    duration: "1m 30s",
+    tokens: "8,200",
+  },
+  {
+    id: "agt-1101",
+    agent: "Unit Test Agent",
+    task: "Generate Stripe webhook mock tests",
+    status: "Success",
+    time: "3h ago",
+    duration: "55s",
+    tokens: "6,100",
+  },
+  {
+    id: "agt-1100",
+    agent: "DevOps Agent",
+    task: "Verify container readiness in staging",
+    status: "Success",
+    time: "5h ago",
+    duration: "4m 12s",
+    tokens: "1,500",
+  },
+];
+export const agentRuns = mockAgentRuns;
+
+export const mockTools = [
+  { name: "Git Engine", icon: "GitBranch", status: "available", lastUsed: "2m ago", category: "VCS" },
+  { name: "Sandboxed File System", icon: "FolderOpen", status: "available", lastUsed: "just now", category: "Storage" },
+  { name: "Jest Test Runner", icon: "TestTube", status: "executing", lastUsed: "now", category: "Runtime" },
+  { name: "Package Manager (npm/yarn)", icon: "Package", status: "available", lastUsed: "5m ago", category: "Dependencies" },
+  { name: "ESLint / Prettier", icon: "CheckSquare", status: "available", lastUsed: "12m ago", category: "Quality" },
+  { name: "AST Static Analyzer", icon: "Scan", status: "available", lastUsed: "15m ago", category: "Analysis" },
+  { name: "Semgrep Security Scanner", icon: "Shield", status: "available", lastUsed: "1h ago", category: "Security" },
+  { name: "Isolated Docker Sandbox", icon: "Container", status: "available", lastUsed: "2h ago", category: "Containers" },
+];
+export const tools = mockTools;
+
+export const mockRecentToolExecutions = [
+  { tool: "Jest Test Runner", agent: "Unit Test Agent", command: "npm test -- --coverage", status: "running", duration: "00:18", exitCode: "--" },
+  { tool: "ESLint", agent: "Code Analysis Agent", command: "eslint src/ --fix", status: "completed", duration: "12s", exitCode: "0" },
+  { tool: "File System", agent: "Code Analysis Agent", command: "cat src/index.ts", status: "completed", duration: "1s", exitCode: "0" },
+  { tool: "Git Engine", agent: "DevOps Agent", command: "git status -s", status: "completed", duration: "2s", exitCode: "0" },
+  { tool: "Semgrep Security", agent: "Security Agent", command: "semgrep --config p/ci .", status: "completed", duration: "45s", exitCode: "0" },
+];
+export const recentExecutions = mockRecentToolExecutions;
+
+export const mockTeamMembers = [
+  {
+    name: "Alok Prasad",
+    email: "alok@praxis.dev",
+    role: "Owner / Admin",
+    status: "active",
+    last: "Active Now",
+    initials: "AP",
+  },
+  {
+    name: "Sarah Chen",
+    email: "sarah@acme.com",
+    role: "Staff Engineer",
+    status: "active",
+    last: "2h ago",
+    initials: "SC",
+  },
+  {
+    name: "Marcus Williams",
+    email: "marcus@acme.com",
+    role: "DevOps Lead",
+    status: "active",
+    last: "1d ago",
+    initials: "MW",
+  },
+  {
+    name: "Priya Patel",
+    email: "priya@acme.com",
+    role: "Security Auditor",
+    status: "invited",
+    last: "Invited",
+    initials: "PP",
+  },
+];
+export const teamMembers = mockTeamMembers;
+
+export const mockApprovalHistory = [
+  {
+    date: "2026-08-31 10:14",
+    workflow: "WF-2040",
+    action: "Restart API servers",
+    decidedBy: "Alok Prasad",
+    decision: "Approved",
+    duration: "2m 14s",
+  },
+  {
+    date: "2026-08-30 14:22",
+    workflow: "WF-2035",
+    action: "Delete staging database snapshot",
+    decidedBy: "DevOps Lead",
+    decision: "Rejected",
+    duration: "4m 02s",
+  },
+  {
+    date: "2026-08-29 09:05",
+    workflow: "WF-2012",
+    action: "Deploy auth-service v2 to staging",
+    decidedBy: "Alok Prasad",
+    decision: "Approved",
+    duration: "1m 45s",
+  },
+  {
+    date: "2026-08-28 16:30",
+    workflow: "WF-1998",
+    action: "Update ingress firewall rules",
+    decidedBy: "SecOps",
+    decision: "Approved",
+    duration: "8m 10s",
+  },
+];
+export const approvalHistory = mockApprovalHistory;
+
+export const mockTokenByAgent = [
+  { name: "Code Analysis", tokens: "82k", val: 82 },
+  { name: "Security", tokens: "54k", val: 54 },
+  { name: "Unit Test", tokens: "195k", val: 195 },
+  { name: "DevOps", tokens: "38k", val: 38 },
+  { name: "Research", tokens: "120k", val: 120 },
+  { name: "Review", tokens: "44k", val: 44 },
+];
+
+export const mockReportsList = [
+  {
+    id: "WF-2047",
+    title: "Security Vulnerability Scan",
+    status: "COMPLETED",
+    project: "payments-api",
+    active: true,
+  },
+  {
+    id: "WF-2045",
+    title: "Unit Test Coverage Benchmark",
+    status: "COMPLETED",
+    project: "payments-api",
+    active: false,
+  },
+  {
+    id: "WF-2038",
+    title: "Architecture & Dependency Audit",
+    status: "ARCHIVED",
+    project: "ecommerce-frontend",
+    active: false,
+  },
+];
+
+

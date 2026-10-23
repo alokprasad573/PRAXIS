@@ -1,40 +1,7 @@
 import { UserPlus, MoreHorizontal } from "lucide-react";
+import { mockTeamMembers } from "../../../utils/dashboardData";
 
-const TeamView = ({ onToast }) => {
-  const members = [
-    {
-      name: "Alok Prasad",
-      email: "alok@praxis.dev",
-      role: "Owner / Admin",
-      status: "active",
-      last: "Active Now",
-      initials: "AP",
-    },
-    {
-      name: "Sarah Chen",
-      email: "sarah@acme.com",
-      role: "Staff Engineer",
-      status: "active",
-      last: "2h ago",
-      initials: "SC",
-    },
-    {
-      name: "Marcus Williams",
-      email: "marcus@acme.com",
-      role: "DevOps Lead",
-      status: "active",
-      last: "1d ago",
-      initials: "MW",
-    },
-    {
-      name: "Priya Patel",
-      email: "priya@acme.com",
-      role: "Security Auditor",
-      status: "invited",
-      last: "Invited",
-      initials: "PP",
-    },
-  ];
+const TeamView = ({ members = mockTeamMembers, onToast }) => {
 
   return (
     <div className="max-w-5xl mx-auto space-y-8 animate-fadeInUp">

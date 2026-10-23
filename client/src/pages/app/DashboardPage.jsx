@@ -11,36 +11,44 @@ import {
   mockOkfPolicies,
   mockKpis,
   mockNotifications,
+  mockActiveWorkflowRuns,
+  mockHistoricalWorkflowRuns,
+  mockAgentRuns,
+  mockTools,
+  mockRecentToolExecutions,
+  mockTeamMembers,
+  mockApprovalHistory,
+  mockAnalyticsData,
 } from "../../utils/dashboardData";
 
-// Components
-import Sidebar from "./components/Sidebar";
-import TopHeader from "./components/TopHeader";
-import Toast from "./components/Toast";
-import CommandPaletteModal from "./components/CommandPaletteModal";
-import NewWorkflowModal from "./components/NewWorkflowModal";
-import ConnectRepoModal from "./components/ConnectRepoModal";
-
-// Views
-import OverviewView from "./components/OverviewView";
-import ProjectsView from "./components/ProjectsView";
-import RepositoriesView from "./components/RepositoriesView";
-import WorkflowsView from "./components/WorkflowsView";
-import WorkflowRunsView from "./components/WorkflowRunsView";
-import WorkflowDetailView from "./components/WorkflowDetailView";
-import AgentsView from "./components/AgentsView";
-import AgentRunsView from "./components/AgentRunsView";
-import AgentDetailView from "./components/AgentDetailView";
-import RagView from "./components/RagView";
-import OkfView from "./components/OkfView";
-import ToolsView from "./components/ToolsView";
-import ApprovalsView from "./components/ApprovalsView";
-import LogsView from "./components/LogsView";
-import ReportsView from "./components/ReportsView";
-import AnalyticsView from "./components/AnalyticsView";
-import TeamView from "./components/TeamView";
-import NotificationsView from "./components/NotificationsView";
-import SettingsView from "./components/SettingsView";
+// Components & Views
+import {
+  Sidebar,
+  TopHeader,
+  Toast,
+  CommandPaletteModal,
+  NewWorkflowModal,
+  ConnectRepoModal,
+  OverviewView,
+  ProjectsView,
+  RepositoriesView,
+  WorkflowsView,
+  WorkflowRunsView,
+  WorkflowDetailView,
+  AgentsView,
+  AgentRunsView,
+  AgentDetailView,
+  RagView,
+  OkfView,
+  ToolsView,
+  ApprovalsView,
+  LogsView,
+  ReportsView,
+  AnalyticsView,
+  TeamView,
+  NotificationsView,
+  SettingsView,
+} from "./components";
 
 const DashboardPage = () => {
   // Navigation & Page State
@@ -225,6 +233,8 @@ const DashboardPage = () => {
       case "workflow-runs":
         return (
           <WorkflowRunsView
+            activeRuns={mockActiveWorkflowRuns}
+            historicalRuns={mockHistoricalWorkflowRuns}
             workflows={workflows}
             onNavigate={handleNavigate}
             onOpenNewWorkflow={() => setIsNewWorkflowOpen(true)}
@@ -253,6 +263,7 @@ const DashboardPage = () => {
       case "agent-runs":
         return (
           <AgentRunsView
+            agentRuns={mockAgentRuns}
             onNavigate={handleNavigate}
             onToast={addToast}
           />
@@ -287,6 +298,8 @@ const DashboardPage = () => {
       case "tools":
         return (
           <ToolsView
+            tools={mockTools}
+            recentExecutions={mockRecentToolExecutions}
             onToast={addToast}
           />
         );
@@ -295,6 +308,7 @@ const DashboardPage = () => {
         return (
           <ApprovalsView
             approvals={approvals}
+            history={mockApprovalHistory}
             onApprove={handleApprove}
             onReject={handleReject}
             onToast={addToast}
@@ -319,6 +333,7 @@ const DashboardPage = () => {
       case "analytics":
         return (
           <AnalyticsView
+            analyticsData={mockAnalyticsData}
             onNavigate={handleNavigate}
           />
         );
@@ -326,6 +341,7 @@ const DashboardPage = () => {
       case "team":
         return (
           <TeamView
+            members={mockTeamMembers}
             onToast={addToast}
           />
         );

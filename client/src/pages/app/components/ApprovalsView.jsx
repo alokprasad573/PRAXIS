@@ -1,45 +1,13 @@
 import { AlertCircle, File, Check } from "lucide-react";
+import { mockApprovalHistory } from "../../../utils/dashboardData";
 
 const ApprovalsView = ({
   approvals = [],
+  history = mockApprovalHistory,
   onApprove,
   onReject,
   onToast,
 }) => {
-  const history = [
-    {
-      date: "2026-08-31 10:14",
-      workflow: "WF-2040",
-      action: "Restart API servers",
-      decidedBy: "Alok Prasad",
-      decision: "Approved",
-      duration: "2m 14s",
-    },
-    {
-      date: "2026-08-30 14:22",
-      workflow: "WF-2035",
-      action: "Delete staging database snapshot",
-      decidedBy: "DevOps Lead",
-      decision: "Rejected",
-      duration: "4m 02s",
-    },
-    {
-      date: "2026-08-29 09:05",
-      workflow: "WF-2012",
-      action: "Deploy auth-service v2 to staging",
-      decidedBy: "Alok Prasad",
-      decision: "Approved",
-      duration: "1m 45s",
-    },
-    {
-      date: "2026-08-28 16:30",
-      workflow: "WF-1998",
-      action: "Update ingress firewall rules",
-      decidedBy: "SecOps",
-      decision: "Approved",
-      duration: "8m 10s",
-    },
-  ];
 
   return (
     <div className="space-y-8 animate-fadeInUp">

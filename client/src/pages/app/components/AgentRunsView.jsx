@@ -1,55 +1,8 @@
 import { useState } from "react";
+import { mockAgentRuns } from "../../../utils/dashboardData";
 
-const AgentRunsView = () => {
+const AgentRunsView = ({ agentRuns = mockAgentRuns }) => {
   const [selectedAgent, setSelectedAgent] = useState("All Agents");
-
-  const agentRuns = [
-    {
-      id: "agt-1104",
-      agent: "Code Analysis Agent",
-      task: "Analyze AST for payments API",
-      status: "Success",
-      time: "10 min ago",
-      duration: "45s",
-      tokens: "12,400",
-    },
-    {
-      id: "agt-1103",
-      agent: "Security Agent",
-      task: "Audit authentication JWT validator",
-      status: "Success",
-      time: "1h ago",
-      duration: "2m 10s",
-      tokens: "45,000",
-    },
-    {
-      id: "agt-1102",
-      agent: "Review Agent",
-      task: "Synthesize security report",
-      status: "Success",
-      time: "2h ago",
-      duration: "1m 30s",
-      tokens: "8,200",
-    },
-    {
-      id: "agt-1101",
-      agent: "Unit Test Agent",
-      task: "Generate Stripe webhook mock tests",
-      status: "Success",
-      time: "3h ago",
-      duration: "55s",
-      tokens: "6,100",
-    },
-    {
-      id: "agt-1100",
-      agent: "DevOps Agent",
-      task: "Verify container readiness in staging",
-      status: "Success",
-      time: "5h ago",
-      duration: "4m 12s",
-      tokens: "1,500",
-    },
-  ];
 
   const filteredRuns =
     selectedAgent === "All Agents"

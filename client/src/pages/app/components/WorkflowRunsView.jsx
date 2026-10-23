@@ -1,74 +1,17 @@
 import { useState } from "react";
 import { Loader2 } from "lucide-react";
+import {
+  mockActiveWorkflowRuns,
+  mockHistoricalWorkflowRuns,
+} from "../../../utils/dashboardData";
 
-const WorkflowRunsView = ({ onNavigate }) => {
+const WorkflowRunsView = ({
+  activeRuns = mockActiveWorkflowRuns,
+  historicalRuns = mockHistoricalWorkflowRuns,
+  onNavigate,
+  onOpenNewWorkflow,
+}) => {
   const [search, setSearch] = useState("");
-
-  const activeRuns = [
-    {
-      id: "run-8832",
-      agent: "Code Analysis Agent",
-      workflow: "WF-2048 Security Patch",
-      status: "Running",
-      duration: "2m 14s",
-      step: "Analyzing AST for injection vectors...",
-    },
-    {
-      id: "run-8833",
-      agent: "Unit Test Agent",
-      workflow: "WF-2048 Coverage Loop",
-      status: "Running",
-      duration: "45s",
-      step: "Generating mocks for auth service (Loop 2)...",
-    },
-  ];
-
-  const historicalRuns = [
-    {
-      id: "run-8831",
-      workflow: "WF-2047 Security Scan",
-      agent: "Review Agent",
-      status: "Success",
-      started: "1h ago",
-      duration: "1m 12s",
-      tokens: "14,200",
-      retries: 0,
-      trigger: "System",
-    },
-    {
-      id: "run-8830",
-      workflow: "WF-2047 Security Scan",
-      agent: "Code Analysis Agent",
-      status: "Success",
-      started: "1h 5m ago",
-      duration: "3m 45s",
-      tokens: "89,450",
-      retries: 1,
-      trigger: "System",
-    },
-    {
-      id: "run-8829",
-      workflow: "WF-2044 Code Refactor",
-      agent: "Research Agent",
-      status: "Failed",
-      started: "3h ago",
-      duration: "5m 10s",
-      tokens: "120,500",
-      retries: 2,
-      trigger: "Manual",
-    },
-    {
-      id: "run-8828",
-      workflow: "WF-2045 Deploy Prod",
-      agent: "DevOps Agent",
-      status: "Success",
-      started: "Yesterday",
-      duration: "4m 20s",
-      tokens: "2,100",
-      retries: 0,
-      trigger: "Admin",
-    },
-  ];
 
   const filteredHistory = historicalRuns.filter(
     (h) =>

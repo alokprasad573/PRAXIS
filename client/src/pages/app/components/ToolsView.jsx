@@ -7,27 +7,28 @@ import {
   Scan,
   Shield,
   Container,
+  Wrench,
 } from "lucide-react";
+import {
+  mockTools,
+  mockRecentToolExecutions,
+} from "../../../utils/dashboardData";
 
-const ToolsView = () => {
-  const tools = [
-    { name: "Git Engine", icon: GitBranch, status: "available", lastUsed: "2m ago", category: "VCS" },
-    { name: "Sandboxed File System", icon: FolderOpen, status: "available", lastUsed: "just now", category: "Storage" },
-    { name: "Jest Test Runner", icon: TestTube, status: "executing", lastUsed: "now", category: "Runtime" },
-    { name: "Package Manager (npm/yarn)", icon: Package, status: "available", lastUsed: "5m ago", category: "Dependencies" },
-    { name: "ESLint / Prettier", icon: CheckSquare, status: "available", lastUsed: "12m ago", category: "Quality" },
-    { name: "AST Static Analyzer", icon: Scan, status: "available", lastUsed: "15m ago", category: "Analysis" },
-    { name: "Semgrep Security Scanner", icon: Shield, status: "available", lastUsed: "1h ago", category: "Security" },
-    { name: "Isolated Docker Sandbox", icon: Container, status: "available", lastUsed: "2h ago", category: "Containers" },
-  ];
+const iconMap = {
+  GitBranch,
+  FolderOpen,
+  TestTube,
+  Package,
+  CheckSquare,
+  Scan,
+  Shield,
+  Container,
+};
 
-  const recentExecutions = [
-    { tool: "Jest Test Runner", agent: "Unit Test Agent", command: "npm test -- --coverage", status: "running", duration: "00:18", exitCode: "--" },
-    { tool: "ESLint", agent: "Code Analysis Agent", command: "eslint src/ --fix", status: "completed", duration: "12s", exitCode: "0" },
-    { tool: "File System", agent: "Code Analysis Agent", command: "cat src/index.ts", status: "completed", duration: "1s", exitCode: "0" },
-    { tool: "Git Engine", agent: "DevOps Agent", command: "git status -s", status: "completed", duration: "2s", exitCode: "0" },
-    { tool: "Semgrep Security", agent: "Security Agent", command: "semgrep --config p/ci .", status: "completed", duration: "45s", exitCode: "0" },
-  ];
+const ToolsView = ({
+  tools = mockTools,
+  recentExecutions = mockRecentToolExecutions,
+}) => {
 
   return (
     <div className="space-y-8 animate-fadeInUp">
@@ -113,7 +114,10 @@ const ToolsView = () => {
             </h2>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               {tools.map((t) => {
-                const Icon = t.icon;
+                const Icon =
+                  typeof t.icon === "string"
+                    ? iconMap[t.icon] || Wrench
+                    : t.icon || Wrench;
                 return (
                   <div
                     key={t.name}

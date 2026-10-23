@@ -1,20 +1,19 @@
 import { useState } from "react";
 import { ArrowUp, ArrowDown, TrendingDown, Minus, TrendingUp } from "lucide-react";
+import {
+  mockAnalyticsData,
+  mockTokenByAgent,
+} from "../../../utils/dashboardData";
 
-const AnalyticsView = () => {
+const AnalyticsView = ({
+  analyticsData = mockAnalyticsData,
+  tokenByAgent = mockTokenByAgent,
+}) => {
   const [timeframe, setTimeframe] = useState("Last 7 Days");
 
-  const successTrend = [88, 91, 87, 93, 95, 92, 94];
-  const tokenByAgent = [
-    { name: "Code Analysis", tokens: "82k", val: 82 },
-    { name: "Security", tokens: "54k", val: 54 },
-    { name: "Unit Test", tokens: "195k", val: 195 },
-    { name: "DevOps", tokens: "38k", val: 38 },
-    { name: "Research", tokens: "120k", val: 120 },
-    { name: "Review", tokens: "44k", val: 44 },
-  ];
-  const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-  const dailyRuns = [24, 31, 19, 42, 38, 35, 44];
+  const successTrend = analyticsData.workflowSuccessRate;
+  const days = analyticsData.days;
+  const dailyRuns = analyticsData.agentRuns;
 
   return (
     <div className="space-y-8 animate-fadeInUp">
