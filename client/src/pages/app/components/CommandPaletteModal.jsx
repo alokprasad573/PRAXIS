@@ -16,8 +16,7 @@ import {
   Terminal,
   FileBarChart,
   BarChart3,
-  Settings,
-  Users,
+Users,
   Bell,
 } from "lucide-react";
 
@@ -165,15 +164,6 @@ const CommandPaletteModal = ({
       action: () => {
         onClose();
         onNavigate("analytics");
-      },
-    },
-    {
-      label: "Settings",
-      icon: Settings,
-      category: "System",
-      action: () => {
-        onClose();
-        onNavigate("settings");
       },
     },
     {

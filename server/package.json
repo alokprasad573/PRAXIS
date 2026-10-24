@@ -1,27 +1,37 @@
 {
-  "name": "server",
-  "version": "1.0.0",
-  "description": "",
-  "main": "server.js",
-  "scripts": {
-    "dev": "nodemon server.js",
-    "start": "node server.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "type": "commonjs",
-  "dependencies": {
-    "bcryptjs": "^3.0.3",
-    "chalk": "^4.1.2",
-    "cors": "^2.8.6",
-    "dotenv": "^18.0.4",
-    "ejs": "^6.0.1",
-    "express": "^5.2.1",
-    "jsonwebtoken": "^9.0.3",
-    "method-override": "^3.0.0",
-    "mongoose": "^9.10.2",
-    "nodemon": "^1.14.10"
-  }
+    "$schema": "https://json.schemastore.org/package.json",
+    "name": "server",
+    "version": "1.0.0",
+    "description": "",
+    "main": "server.js",
+    "scripts": {
+        "dev": "nodemon server.js",
+        "start": "node server.js",
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "keywords": [],
+    "author": "",
+    "license": "ISC",
+    "type": "commonjs",
+    "dependencies": {
+        "@google/genai": "^2.31.0",
+        "@huggingface/inference": "^4.13.32",
+        "bcryptjs": "^3.0.3",
+        "cors": "^2.8.6",
+        "dotenv": "^18.0.9",
+        "ejs": "^6.0.1",
+        "express": "^5.3.0",
+        "groq-sdk": "^1.6.0",
+        "jsonwebtoken": "^9.0.3",
+        "method-override": "^3.0.0",
+        "mongoose": "^9.11.4",
+        "nodemailer": "^10.2.1",
+        "nodemon": "^3.1.14"
+    },
+    "allowScripts": {
+        "nodemon@1.19.4": true,
+        "node-domexception@1.0.0": true,
+        "@google/genai@2.31.0": true,
+        "protobufjs@7.6.6": true
+    }
 }

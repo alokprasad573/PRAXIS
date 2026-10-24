@@ -38,8 +38,8 @@ const AgentsView = ({ agents = [], onNavigate }) => {
 
   const filteredAgents = agents.filter(
     (a) =>
-      a.name.toLowerCase().includes(filter.toLowerCase()) ||
-      a.model.toLowerCase().includes(filter.toLowerCase()) ||
+      (a.name && a.name.toLowerCase().includes(filter.toLowerCase())) ||
+      (a.model && a.model.toLowerCase().includes(filter.toLowerCase())) ||
       (a.capabilities &&
         a.capabilities.some((c) =>
           c.toLowerCase().includes(filter.toLowerCase()),
@@ -71,10 +71,10 @@ const AgentsView = ({ agents = [], onNavigate }) => {
   };
 
   return (
-    <div className="space-y-8 animate-fadeInUp">
+    <div className="space-y-8 animate-fadeInUp font-mono">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-extrabold text-cream-100 tracking-tight">
+          <h1 className="text-3xl font-extrabold text-cream-100 tracking-tight font-sans">
             Agent Library
           </h1>
           <p className="text-xs text-[#b8ab97] font-mono mt-1">
@@ -116,10 +116,10 @@ const AgentsView = ({ agents = [], onNavigate }) => {
           </div>
           <button
             type="button"
-            onClick={() => onNavigate("agent-detail", "agent-003")}
+            onClick={() => onNavigate("agent-detail", "agent-002")}
             className="bg-orange-600 hover:bg-orange-500 text-white px-3.5 py-1.5 rounded-lg text-xs font-mono font-bold transition-all shadow-[0_0_12px_rgba(249,115,22,0.3)] flex items-center gap-1.5 cursor-pointer"
           >
-            <span>Inspect Loop</span> <ArrowRight className="w-3.5 h-3.5" />
+            Inspect Loop <ArrowRight className="w-3.5 h-3.5" />
           </button>
         </div>
 
@@ -174,13 +174,14 @@ const AgentsView = ({ agents = [], onNavigate }) => {
       {/* Agents Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
         {filteredAgents.map((agent) => {
+          const agentKey = agent.agentId || agent._id || agent.id;
           const IconComponent = iconMap[agent.icon] || Bot;
           const caps = agent.capabilities || ["AST parsing", "Static analysis"];
 
           return (
             <div
-              key={agent.id}
-              onClick={() => onNavigate("agent-detail", agent.id)}
+              key={agentKey}
+              onClick={() => onNavigate("agent-detail", agentKey)}
               className="bg-dark-card border border-[#201d1a] hover:border-orange-500/40 rounded-xl p-5 flex flex-col justify-between transition-all hover:shadow-[0_4px_20px_rgba(249,115,22,0.1)] group cursor-pointer"
             >
               <div>
@@ -241,5 +242,4 @@ const AgentsView = ({ agents = [], onNavigate }) => {
 };
 
 export default AgentsView;
-
 export { AgentsView };

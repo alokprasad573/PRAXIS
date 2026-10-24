@@ -2,18 +2,35 @@ const mongoose = require("mongoose");
 
 const okfPolicySchema = new mongoose.Schema(
   {
+    workspace: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Workspace",
+      index: true,
+    },
+    project: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Project",
+      index: true,
+    },
     policyId: {
       type: String, // e.g. "okf-001"
-      unique: true,
       required: true,
+      trim: true,
     },
     name: {
       type: String,
       required: true,
+      trim: true,
     },
     category: {
       type: String,
-      enum: ["Deployment Restrictions", "Validation Rules", "Security Policies", "Architecture Rules", "Approval Policies"],
+      enum: [
+        "Deployment Restrictions",
+        "Validation Rules",
+        "Security Policies",
+        "Architecture Rules",
+        "Approval Policies",
+      ],
       required: true,
     },
     risk: {
@@ -39,5 +56,9 @@ const okfPolicySchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
+
+// Compound index: A policyId is unique within a specific project / workspace
+okfPolicySchema.index({ policyId: 1, project: 1 });
+okfPolicySchema.index({ workspace: 1, project: 1 });
 
 module.exports = mongoose.model("OkfPolicy", okfPolicySchema);

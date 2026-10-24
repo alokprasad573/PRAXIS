@@ -223,8 +223,8 @@ const OverviewView = ({
 
               return (
                 <div
-                  key={wf.id}
-                  onClick={() => onNavigate("workflow-detail", wf.id)}
+                  key={wf.customId || wf.id || wf._id}
+                  onClick={() => onNavigate("workflow-detail", wf.customId || wf.id || wf._id)}
                   className="bg-dark-card border border-[#201d1a] rounded-xl p-5 hover:border-orange-500/40 cursor-pointer transition-all hover:shadow-[0_4px_20px_rgba(249,115,22,0.1)] block group"
                 >
                   <div className="flex items-center justify-between mb-2">
@@ -237,7 +237,7 @@ const OverviewView = ({
                         }`}
                       />
                       <span className="text-xs font-mono text-orange-400 font-bold">
-                        {wf.id || "WF-XXXX"}
+                        {wf.customId || wf.id || "WF-XXXX"}
                       </span>
                     </div>
                     <div>{getStatusBadge(wf.status)}</div>
@@ -249,7 +249,7 @@ const OverviewView = ({
 
                   <div className="flex items-center justify-between text-xs text-[#a89f91] mb-2 font-mono">
                     <span>
-                      {wf.project || "payments-api"} / {wf.branch || "main"}
+                      {wf.project?.name || wf.project || "payments-api"} / {wf.branch || "main"}
                     </span>
                     <span className="text-cream-200 font-semibold">
                       {wf.progress || 0}% complete

@@ -355,7 +355,8 @@ exports.githubRedirect = (req, res) => {
 // 9. GITHUB OAUTH - CALLBACK & SESSION CREATION
 exports.githubCallback = async (req, res) => {
   const { code } = req.query;
-  const clientUrl = process.env.GITHUB_CLIENT_URL || "http://localhost:5173";
+  const rawClientUrl = process.env.CLIENT_URL || "http://localhost:5173";
+  const clientUrl = rawClientUrl.replace(/\/+$/, "");
 
   if (!code) {
     return res.redirect(`${clientUrl}/auth?error=github_code_missing`);

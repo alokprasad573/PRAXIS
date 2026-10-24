@@ -1,10 +1,12 @@
 import { useState } from "react";
-import { Plus, FolderGit2, CheckCircle, ArrowRight, Trash2, Loader2 } from "lucide-react";
+import { Plus, FolderGit2, CheckCircle, ArrowRight, Trash2, Loader2, Database } from "lucide-react";
 
 const RepositoriesView = ({
   projects = [],
   onOpenConnectModal,
   onDeleteProject,
+  onNavigate,
+  onSelectProject,
 }) => {
   const [deletingId, setDeletingId] = useState(null);
 
@@ -18,6 +20,8 @@ const RepositoriesView = ({
     }
   };
 
+  const totalChunks = projects.reduce((acc, p) => acc + (p.ragChunks ?? 0), 0);
+
   return (
     <div className="max-w-5xl mx-auto space-y-8 animate-fadeInUp">
       <div className="flex items-center justify-between">
@@ -26,7 +30,7 @@ const RepositoriesView = ({
             Repositories
           </h1>
           <p className="text-xs text-[#b8ab97] font-mono mt-1">
-            Manage connected codebases and vector artifact storage
+            {projects.length} codebases connected • {totalChunks.toLocaleString()} total vectors indexed in MongoDB
           </p>
         </div>
         <button
@@ -73,9 +77,14 @@ const RepositoriesView = ({
 
       {/* Connected Repositories Section */}
       <div>
-        <h3 className="text-xs font-bold text-cream-100 uppercase font-mono mb-4">
-          Connected Codebases ({projects.length})
-        </h3>
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-xs font-bold text-cream-100 uppercase font-mono">
+            Connected Codebases ({projects.length})
+          </h3>
+          <span className="text-[11px] font-mono text-orange-400">
+            Real DB Chunks: {totalChunks.toLocaleString()}
+          </span>
+        </div>
 
         {projects.length === 0 ? (
           <div className="text-center py-12 px-4 border border-dashed border-[#282420] rounded-xl bg-[#0b0c10] font-mono">
@@ -101,64 +110,89 @@ const RepositoriesView = ({
             {projects.map((p) => {
               const projectId = p.id || p._id;
               const isDeleting = deletingId === projectId;
+              const chunkCount = p.ragChunks ?? 0;
 
               return (
                 <div
                   key={projectId}
                   className="bg-dark-card border border-[#201d1a] hover:border-orange-500/40 rounded-xl p-5 transition-all shadow-md flex flex-col justify-between"
                 >
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="flex items-center gap-3 min-w-0 pr-2">
-                      <div className="w-10 h-10 rounded-xl bg-orange-500/15 border border-orange-500/30 flex items-center justify-center text-orange-400 shrink-0">
-                        <FolderGit2 className="w-5 h-5" />
+                  <div>
+                    <div className="flex items-start justify-between mb-4">
+                      <div className="flex items-center gap-3 min-w-0 pr-2">
+                        <div className="w-10 h-10 rounded-xl bg-orange-500/15 border border-orange-500/30 flex items-center justify-center text-orange-400 shrink-0">
+                          <FolderGit2 className="w-5 h-5" />
+                        </div>
+                        <div className="min-w-0">
+                          <h4 className="text-cream-100 font-bold font-mono truncate">
+                            {p.name}
+                          </h4>
+                          <p className="text-[11px] text-[#8a7f70] font-mono truncate">
+                            {p.repo}
+                          </p>
+                        </div>
                       </div>
-                      <div className="min-w-0">
-                        <h4 className="text-cream-100 font-bold font-mono truncate">
-                          {p.name}
-                        </h4>
-                        <p className="text-[11px] text-[#8a7f70] font-mono truncate">
-                          {p.repo}
-                        </p>
+
+                      <div className="flex items-center gap-2 shrink-0">
+                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-bold flex items-center gap-1 border ${
+                          chunkCount > 0
+                            ? "bg-emerald-500/15 text-emerald-400 border-emerald-500/30"
+                            : "bg-amber-500/15 text-amber-400 border-amber-500/30"
+                        }`}>
+                          <CheckCircle className="w-3 h-3" />
+                          {chunkCount > 0 ? "Indexed" : "Pending Index"}
+                        </span>
+
+                        {/* Delete Button */}
+                        <button
+                          type="button"
+                          onClick={() => handleDelete(projectId, p.name)}
+                          disabled={isDeleting}
+                          className="p-1.5 rounded-lg text-[#8a7f70] hover:text-rose-400 hover:bg-rose-500/15 border border-transparent hover:border-rose-500/30 transition-all cursor-pointer disabled:opacity-50"
+                          title="Disconnect and delete repository from DB"
+                        >
+                          {isDeleting ? (
+                            <Loader2 className="w-3.5 h-3.5 animate-spin text-rose-400" />
+                          ) : (
+                            <Trash2 className="w-3.5 h-3.5" />
+                          )}
+                        </button>
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-2 shrink-0">
-                      <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 flex items-center gap-1">
-                        <CheckCircle className="w-3 h-3" /> Synced
-                      </span>
-
-                      {/* 🗑️ Delete Button */}
-                      <button
-                        type="button"
-                        onClick={() => handleDelete(projectId, p.name)}
-                        disabled={isDeleting}
-                        className="p-1.5 rounded-lg text-[#8a7f70] hover:text-rose-400 hover:bg-rose-500/15 border border-transparent hover:border-rose-500/30 transition-all cursor-pointer disabled:opacity-50"
-                        title="Disconnect and delete repository from DB"
-                      >
-                        {isDeleting ? (
-                          <Loader2 className="w-3.5 h-3.5 animate-spin text-rose-400" />
-                        ) : (
-                          <Trash2 className="w-3.5 h-3.5" />
-                        )}
-                      </button>
+                    <div className="text-xs font-mono text-[#a89f91] space-y-1.5 pt-2 border-t border-[#1b1916]">
+                      <div className="flex justify-between">
+                        <span>Default Branch:</span>
+                        <span className="text-cream-100 font-bold">{p.branch || "main"}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Language:</span>
+                        <span className="text-orange-400">{p.language || "TypeScript"}</span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span>RAG Chunks:</span>
+                        <span className="text-orange-300 font-bold flex items-center gap-1">
+                          <Database className="w-3 h-3 text-orange-400" />
+                          {chunkCount.toLocaleString()} vectors
+                        </span>
+                      </div>
                     </div>
                   </div>
 
-                  <div className="text-xs font-mono text-[#a89f91] space-y-1 pt-2 border-t border-[#1b1916]">
-                    <div>
-                      Default Branch:{" "}
-                      <span className="text-cream-100">{p.branch || "main"}</span>
-                    </div>
-                    <div>
-                      Language:{" "}
-                      <span className="text-orange-400">{p.language || "TypeScript"}</span>
-                    </div>
-                    <div>
-                      RAG Chunks:{" "}
-                      <span className="text-orange-400 font-bold">
-                        {(p.ragChunks || 12000).toLocaleString()} vectors
-                      </span>
-                    </div>
+                  <div className="pt-3.5 mt-3 border-t border-[#201d1a] flex items-center justify-between font-mono text-xs">
+                    <span className="text-[11px] text-[#78716c]">
+                      Status: <b className="text-cream-100">{chunkCount > 0 ? "Active in RAG" : "Not yet indexed"}</b>
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (onSelectProject) onSelectProject(p);
+                        if (onNavigate) onNavigate("rag");
+                      }}
+                      className="text-xs text-orange-400 hover:text-orange-300 flex items-center gap-1 font-bold cursor-pointer"
+                    >
+                      {chunkCount > 0 ? "View Vectors" : "Index in RAG"} <ArrowRight className="w-3 h-3" />
+                    </button>
                   </div>
                 </div>
               );

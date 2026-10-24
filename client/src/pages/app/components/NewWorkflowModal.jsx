@@ -1,45 +1,59 @@
 import { useState } from "react";
-import { PlusCircle, X, Play, Loader } from "lucide-react";
+import { PlusCircle, X, Play, Loader2, AlertCircle } from "lucide-react";
+import { workflowApi } from "../../../utils/apiService";
 
-const NewWorkflowModal = ({ isOpen, onClose, onLaunchWorkflow, projects = [] }) => {
+const NewWorkflowModal = ({
+  isOpen,
+  onClose,
+  onLaunchWorkflow,
+  projects = [],
+}) => {
   const [task, setTask] = useState("");
-  const [project, setProject] = useState(projects[0]?.name || "");
-  const [branch, setBranch] = useState("main");
+  const [selectedProjectId, setSelectedProjectId] = useState(
+    () => projects[0]?._id || projects[0]?.id || "",
+  );
+  const [branch, setBranch] = useState(() => projects[0]?.branch || "main");
   const [executionMode, setExecutionMode] = useState("parallel");
   const [approvalPolicy, setApprovalPolicy] = useState("high-risk-only");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
 
   if (!isOpen) return null;
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!task.trim()) return;
+    if (!selectedProjectId) {
+      setErrorMsg("Please select a project repository.");
+      return;
+    }
 
     setIsSubmitting(true);
-    setTimeout(() => {
-      const newId = "WF-" + (2050 + Math.floor(Math.random() * 100));
-      const newWf = {
-        id: newId,
-        name: task.length > 50 ? task.slice(0, 47) + "..." : task,
-        projectId: project,
-        project,
+    setErrorMsg("");
+
+    try {
+      const res = await workflowApi.launch({
+        name: task.trim(),
+        projectId: selectedProjectId,
         branch,
-        status: "running",
-        progress: 15,
-        trigger: "manual",
         executionMode,
         approvalPolicy,
-        agents: ["agent-001", "agent-003", "agent-005", "agent-007"],
-        duration: "12s",
-        startedAt: new Date().toISOString(),
-        metrics: { tokensUsed: 4200, estimatedCost: 0.08, retries: 0 },
-      };
+      });
 
-      if (onLaunchWorkflow) onLaunchWorkflow(newWf);
+      if (res.success && res.data) {
+        if (onLaunchWorkflow) onLaunchWorkflow(res.data);
+        setTask("");
+        onClose();
+      } else {
+        setErrorMsg(res.message || "Failed to launch workflow.");
+      }
+    } catch (err) {
+      setErrorMsg(
+        err.response?.data?.message || "Error launching workflow on server.",
+      );
+    } finally {
       setIsSubmitting(false);
-      setTask("");
-      onClose();
-    }, 600);
+    }
   };
 
   return (
@@ -48,7 +62,7 @@ const NewWorkflowModal = ({ isOpen, onClose, onLaunchWorkflow, projects = [] }) 
       onClick={(e) => {
         if (e.target.id === "modal-new-workflow") onClose();
       }}
-      className="fixed inset-0 bg-black/80 backdrop-blur-sm z-100 flex items-center justify-center p-4 transition-opacity"
+      className="fixed inset-0 bg-black/80 backdrop-blur-sm z-100 flex items-center justify-center p-4 transition-opacity font-mono"
     >
       <div className="w-full max-w-lg bg-dark-card border border-[#2a2520] rounded-xl shadow-[0_20px_50px_rgba(0,0,0,0.8)] overflow-hidden animate-fadeInUp">
         <div className="flex items-center justify-between p-5 border-b border-[#201d1a] bg-[#12131a]">
@@ -70,135 +84,121 @@ const NewWorkflowModal = ({ isOpen, onClose, onLaunchWorkflow, projects = [] }) 
           </button>
         </div>
 
-        <form id="new-workflow-form" onSubmit={handleSubmit} className="p-6 space-y-4">
+        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+          {errorMsg && (
+            <div className="p-3 rounded-lg bg-rose-500/15 border border-rose-500/40 text-rose-300 text-xs flex items-center gap-2">
+              <AlertCircle className="w-4 h-4 shrink-0 text-rose-400" />
+              <span>{errorMsg}</span>
+            </div>
+          )}
+
           <div>
             <label className="block text-xs font-mono uppercase tracking-wider text-[#d6c5a8] mb-1.5">
-              Task Description
+              Task Prompt / Objective
             </label>
             <textarea
-              id="wf-desc"
               required
+              rows={3}
+              placeholder="e.g. Generate edge-case unit tests for auth service and fix any detected SQL injection vectors..."
               value={task}
               onChange={(e) => setTask(e.target.value)}
-              className="w-full bg-dark-base border border-[#282420] rounded-lg p-3 text-sm text-cream-100 placeholder-[#6b645b] focus:ring-1 focus:ring-orange-500 focus:border-orange-500 font-mono h-24 resize-none transition-colors outline-none"
-              placeholder="e.g. Improve unit test coverage to 80% for payments-api and audit security vulnerabilities..."
+              className="w-full bg-dark-base border border-[#282420] rounded-lg p-3 text-xs text-cream-100 focus:ring-1 focus:ring-orange-500 outline-none"
             />
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-mono uppercase tracking-wider text-[#d6c5a8] mb-1.5">
-                Project
+              <label className="block text-[11px] font-mono uppercase tracking-wider text-[#a89f91] mb-1">
+                Target Project
               </label>
               <select
-                id="wf-project"
-                value={project}
-                onChange={(e) => setProject(e.target.value)}
-                className="w-full bg-dark-base border border-[#282420] rounded-lg p-2 text-xs text-cream-100 focus:ring-1 focus:ring-orange-500 focus:border-orange-500 font-mono outline-none"
+                value={selectedProjectId}
+                onChange={(e) => {
+                  setSelectedProjectId(e.target.value);
+                  const p = projects.find(
+                    (proj) => (proj._id || proj.id) === e.target.value,
+                  );
+                  if (p?.branch) setBranch(p.branch);
+                }}
+                className="w-full bg-dark-base border border-[#282420] rounded-lg p-2.5 text-xs text-cream-100 focus:ring-1 focus:ring-orange-500 outline-none"
               >
-                {projects.length === 0 ? (
-                  <option value="">No connected projects</option>
-                ) : (
-                  projects.map((p) => (
-                    <option key={p.id || p._id} value={p.name}>
-                      {p.name}
-                    </option>
-                  ))
-                )}
+                {projects.map((p) => (
+                  <option key={p._id || p.id} value={p._id || p.id}>
+                    {p.name} ({p.language || "TypeScript"})
+                  </option>
+                ))}
               </select>
             </div>
+
             <div>
-              <label className="block text-xs font-mono uppercase tracking-wider text-[#d6c5a8] mb-1.5">
-                Branch
+              <label className="block text-[11px] font-mono uppercase tracking-wider text-[#a89f91] mb-1">
+                Git Branch
               </label>
-              <select
-                id="wf-branch"
+              <input
+                type="text"
                 value={branch}
                 onChange={(e) => setBranch(e.target.value)}
-                className="w-full bg-dark-base border border-[#282420] rounded-lg p-2 text-xs text-cream-100 focus:ring-1 focus:ring-orange-500 focus:border-orange-500 font-mono outline-none"
+                className="w-full bg-dark-base border border-[#282420] rounded-lg p-2.5 text-xs text-cream-100 focus:ring-1 focus:ring-orange-500 outline-none"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-[11px] font-mono uppercase tracking-wider text-[#a89f91] mb-1">
+                Execution Mode
+              </label>
+              <select
+                value={executionMode}
+                onChange={(e) => setExecutionMode(e.target.value)}
+                className="w-full bg-dark-base border border-[#282420] rounded-lg p-2.5 text-xs text-cream-100 focus:ring-1 focus:ring-orange-500 outline-none"
               >
-                <option value="main">main</option>
-                <option value="develop">develop</option>
-                <option value="feature/test-coverage">
-                  feature/test-coverage
+                <option value="parallel">Parallel (High Throughput)</option>
+                <option value="sequential">
+                  Sequential (Strict Step-by-Step)
                 </option>
               </select>
             </div>
-          </div>
 
-          <div>
-            <label className="block text-xs font-mono uppercase tracking-wider text-[#d6c5a8] mb-1.5">
-              Execution Mode
-            </label>
-            <div className="flex gap-2">
-              <button
-                type="button"
-                onClick={() => setExecutionMode("parallel")}
-                className={`flex-1 py-2 px-3 text-xs rounded-lg font-mono font-medium transition-colors cursor-pointer ${
-                  executionMode === "parallel"
-                    ? "border border-orange-500 bg-orange-500/15 text-orange-400"
-                    : "border border-[#282420] text-[#8a7f70] hover:border-orange-500/30"
-                }`}
-                data-mode="parallel"
+            <div>
+              <label className="block text-[11px] font-mono uppercase tracking-wider text-[#a89f91] mb-1">
+                Approval Policy
+              </label>
+              <select
+                value={approvalPolicy}
+                onChange={(e) => setApprovalPolicy(e.target.value)}
+                className="w-full bg-dark-base border border-[#282420] rounded-lg p-2.5 text-xs text-cream-100 focus:ring-1 focus:ring-orange-500 outline-none"
               >
-                Parallel Branching
-              </button>
-              <button
-                type="button"
-                onClick={() => setExecutionMode("sequential")}
-                className={`flex-1 py-2 px-3 text-xs rounded-lg font-mono font-medium transition-colors cursor-pointer ${
-                  executionMode === "sequential"
-                    ? "border border-orange-500 bg-orange-500/15 text-orange-400"
-                    : "border border-[#282420] text-[#8a7f70] hover:border-orange-500/30"
-                }`}
-                data-mode="sequential"
-              >
-                Sequential Linear
-              </button>
+                <option value="high-risk-only">
+                  High Risk Only (Recommended)
+                </option>
+                <option value="all">Require All Approvals</option>
+                <option value="none">Autonomous (Zero Gates)</option>
+              </select>
             </div>
-            <input type="hidden" id="wf-mode" value={executionMode} />
           </div>
 
-          <div>
-            <label className="block text-xs font-mono uppercase tracking-wider text-[#d6c5a8] mb-1.5">
-              Approval Governance Policy
-            </label>
-            <select
-              id="wf-policy"
-              value={approvalPolicy}
-              onChange={(e) => setApprovalPolicy(e.target.value)}
-              className="w-full bg-dark-base border border-[#282420] rounded-lg p-2 text-xs text-cream-100 focus:ring-1 focus:ring-orange-500 focus:border-orange-500 font-mono outline-none"
-            >
-              <option value="high-risk-only">
-                High Risk Only (Recommended Gate)
-              </option>
-              <option value="all">All Destructive/Write Actions</option>
-              <option value="none">Autonomous Full Automation</option>
-            </select>
-          </div>
-
-          <div className="flex gap-3 pt-4 border-t border-[#201d1a]">
+          <div className="flex gap-3 pt-3 border-t border-[#201d1a]">
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 py-2 px-4 text-xs font-mono border border-[#282420] text-[#b8ab97] rounded-lg hover:bg-[#181920] hover:text-cream-100 transition-colors cursor-pointer"
+              disabled={isSubmitting}
+              className="flex-1 py-2 rounded-lg border border-[#282420] text-[#a89f91] hover:bg-[#14151b] cursor-pointer transition-colors text-xs"
             >
               Cancel
             </button>
             <button
               type="submit"
-              disabled={isSubmitting}
-              className="flex-1 py-2 px-4 text-xs font-mono bg-orange-600 hover:bg-orange-500 text-white font-bold rounded-lg transition-colors flex items-center justify-center gap-2 shadow-[0_0_12px_rgba(249,115,22,0.35)] cursor-pointer disabled:opacity-50"
+              disabled={isSubmitting || !task.trim()}
+              className="flex-1 py-2 rounded-lg bg-orange-600 hover:bg-orange-500 text-white font-bold shadow-[0_0_12px_rgba(249,115,22,0.3)] cursor-pointer transition-all flex items-center justify-center gap-2 text-xs disabled:opacity-50"
             >
               {isSubmitting ? (
                 <>
-                  <Loader className="w-3.5 h-3.5 animate-spin" />
-                  Initializing...
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" /> Launching...
                 </>
               ) : (
                 <>
-                  <Play className="w-3.5 h-3.5 fill-white" />
-                  Start Orchestrator
+                  <Play className="w-3.5 h-3.5 fill-current" /> Launch Workflow
                 </>
               )}
             </button>
@@ -210,5 +210,3 @@ const NewWorkflowModal = ({ isOpen, onClose, onLaunchWorkflow, projects = [] }) 
 };
 
 export default NewWorkflowModal;
-
-export { NewWorkflowModal };

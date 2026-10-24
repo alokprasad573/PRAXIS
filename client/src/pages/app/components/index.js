@@ -25,5 +25,3 @@ export { default as ReportsView } from "./ReportsView";
 export { default as AnalyticsView } from "./AnalyticsView";
 export { default as TeamView } from "./TeamView";
 export { default as NotificationsView } from "./NotificationsView";
-export { default as SettingsView } from "./SettingsView";
-

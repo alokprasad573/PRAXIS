@@ -120,7 +120,7 @@ const ConnectRepoModal = ({ isOpen, onClose, onAddProject }) => {
     } catch (err) {
       setErrorMsg(
         err.response?.data?.message ||
-          "Failed to connect repository. Ensure backend is running."
+          "Failed to connect repository. Ensure backend is running.",
       );
     } finally {
       setIsSubmitting(false);
@@ -128,7 +128,7 @@ const ConnectRepoModal = ({ isOpen, onClose, onAddProject }) => {
   };
 
   const filteredRepos = githubState.repos.filter((r) =>
-    r.name.toLowerCase().includes(searchQuery.toLowerCase())
+    r.name.toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
   return (
@@ -139,7 +139,7 @@ const ConnectRepoModal = ({ isOpen, onClose, onAddProject }) => {
       }}
       className="fixed inset-0 bg-black/85 backdrop-blur-md z-100 flex items-center justify-center p-4 transition-opacity font-mono"
     >
-      <div className="w-full max-w-2xl bg-[#0b0c10] border border-[#2a2520] rounded-2xl shadow-[0_25px_60px_rgba(0,0,0,0.9)] overflow-hidden animate-fadeInUp flex flex-col max-h-[90vh]">
+      <div className="w-full max-w-3xl bg-[#0b0c10] border border-[#2a2520] rounded-2xl shadow-[0_25px_60px_rgba(0,0,0,0.9)] overflow-hidden animate-fadeInUp flex flex-col max-h-[90vh]">
         {/* Header */}
         <div className="flex items-center justify-between p-5 border-b border-[#201d1a] bg-[#101218]">
           <div className="flex items-center gap-2.5">
@@ -225,7 +225,8 @@ const ConnectRepoModal = ({ isOpen, onClose, onAddProject }) => {
                     Connect GitHub to Access Repositories
                   </h3>
                   <p className="text-[11px] text-[#8a7f70] max-w-sm mb-4">
-                    Authorize PRAXIS with repo permissions to load your private and public repositories automatically.
+                    Authorize PRAXIS with repo permissions to load your private
+                    and public repositories automatically.
                   </p>
                   <button
                     type="button"
@@ -394,7 +395,7 @@ const ConnectRepoModal = ({ isOpen, onClose, onAddProject }) => {
                 Ingesting Codebase into RAG...
               </>
             ) : (
-              `Connect & Ingest ${selectedRepo ? selectedRepo.name : "Repository"}`
+              `${selectedRepo ? selectedRepo.name : "Connect & Ingest Repository"}`
             )}
           </button>
         </div>

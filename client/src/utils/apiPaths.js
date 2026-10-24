@@ -22,11 +22,21 @@ export const API_PATHS = {
     MARK_NOTIFICATIONS_READ: "/api/dashboard/notifications/mark-read",
   },
 
+  // Workspaces & Team Members
+  WORKSPACES: {
+    CURRENT: "/api/workspaces/current",
+    MEMBERS: "/api/workspaces/members",
+    INVITE_DETAILS: "/api/workspaces/invite-details",
+    ACCEPT_INVITE: "/api/workspaces/accept-invite",
+    UPDATE_ROLE: (id) => `/api/workspaces/members/${id}`,
+    REMOVE_MEMBER: (id) => `/api/workspaces/members/${id}`,
+  },
+
   // Projects & Repositories
   PROJECTS: {
     GET_ALL: "/api/projects",
     CONNECT: "/api/projects/connect",
-    GITHUB_REPOS: "/api/projects/github/repos", // 👈 Added
+    GITHUB_REPOS: "/api/projects/github/repos",
     GET_BY_ID: (id) => `/api/projects/${id}`,
     DELETE: (id) => `/api/projects/${id}`,
   },
@@ -51,21 +61,34 @@ export const API_PATHS = {
   APPROVALS: {
     PENDING: "/api/approvals/pending",
     HISTORY: "/api/approvals/history",
+    DECIDE: (id) => `/api/approvals/${id}/decision`,
     APPROVE: (id) => `/api/approvals/${id}/approve`,
     REJECT: (id) => `/api/approvals/${id}/reject`,
   },
 
-  // RAG Knowledge & VectorDB
+  // Notifications & Telemetry Alerts
+  NOTIFICATIONS: {
+    GET_ALL: "/api/notifications",
+    MARK_ALL_READ: "/api/notifications/mark-read",
+    MARK_READ: (id) => `/api/notifications/${id}/read`,
+    DELETE: (id) => `/api/notifications/${id}`,
+  },
+
+    // RAG Knowledge & VectorDB
   RAG: {
     SOURCES: "/api/rag/sources",
     QUERY: "/api/rag/query",
-    REINDEX: (id) => `/api/rag/${id}/reindex`,
+    REINDEX: "/api/rag/reindex",
+    INDEX_FILE: "/api/rag/index-file",
   },
 
   // OKF Deterministic Policies
   OKF: {
     POLICIES: "/api/okf/policies",
+    CREATE: "/api/okf/policies",
+    BASELINE: "/api/okf/policies/baseline",
     TOGGLE: (id) => `/api/okf/policies/${id}/toggle`,
+    DELETE: (id) => `/api/okf/policies/${id}`,
   },
 
   // Telemetry, Terminal Logs & Analytics

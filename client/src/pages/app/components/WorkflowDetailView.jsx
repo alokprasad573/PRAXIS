@@ -36,16 +36,30 @@ const WorkflowDetailView = ({
 }) => {
   const [activeTab, setActiveTab] = useState("execution");
 
-  const wf = workflows.find((w) => w.id === workflowId) ||
+  const wf =
+    workflows.find(
+      (w) =>
+        (w.customId && w.customId === workflowId) ||
+        (w._id && w._id.toString() === workflowId) ||
+        (w.id && w.id === workflowId)
+    ) ||
     workflows[0] || {
-      id: "WF-2048",
+      customId: "WF-2048",
       name: "Autonomous Test Coverage Enhancement",
-      project: "payments-api",
+      project: { name: "payments-api", branch: "main" },
       branch: "main",
       status: "running",
       progress: 68,
       duration: "12m 34s",
     };
+
+  const wfCustomId = wf.customId || wf.id || wf._id?.toString() || workflowId || "WF-2048";
+  const projectName =
+    typeof wf.project === "object"
+      ? wf.project?.name || wf.project?.repo || "payments-api"
+      : wf.project || "payments-api";
+  const branchName =
+    wf.branch || (typeof wf.project === "object" ? wf.project?.branch : "main") || "main";
 
   const isRunning = wf.status === "running" || wf.status === "in_progress";
 
@@ -109,16 +123,16 @@ const WorkflowDetailView = ({
           <div>
             <div className="flex items-center gap-2 mb-1.5 flex-wrap font-mono">
               <span className="text-xs text-orange-400 font-bold">
-                {wf.id || "WF-2048"}
+                {wfCustomId}
               </span>
               <span className="text-[#524c45]">/</span>
               <span className="text-xs text-cream-100 hover:text-orange-300 transition-colors">
-                {wf.project || "payments-api"}
+                {projectName}
               </span>
               <span className="text-[#524c45]">/</span>
               <span className="text-xs text-[#a89f91] flex items-center gap-1">
                 <GitBranch className="w-3 h-3 text-orange-400" />{" "}
-                {wf.branch || "main"}
+                {branchName}
               </span>
             </div>
             <h1 className="text-2xl font-extrabold text-cream-100 tracking-tight mb-3">
@@ -378,7 +392,7 @@ const WorkflowDetailView = ({
               </div>
 
               {/* Node: Orchestrator (Completed) */}
-              <div className="w-40merald-500/10 border border-emerald-500/40 rounded-xl p-3 text-center z-10 flex flex-col items-center shadow-lg relative">
+              <div className="w-40 bg-emerald-500/10 border border-emerald-500/40 rounded-xl p-3 text-center z-10 flex flex-col items-center shadow-lg relative">
                 <div className="absolute -top-2 -right-2 w-5 h-5 bg-emerald-500 rounded-full flex items-center justify-center text-white border-2 border-dark-card">
                   <Check className="w-3 h-3" />
                 </div>
@@ -412,7 +426,7 @@ const WorkflowDetailView = ({
                 </div>
 
                 {/* Node: Unit Test Agent (Running) */}
-                <div className="w-40range-500/15 border-2 border-orange-500 rounded-xl p-3 text-center shadow-[0_0_20px_rgba(249,115,22,0.35)] flex flex-col items-center relative">
+                <div className="w-40 bg-orange-500/15 border-2 border-orange-500 rounded-xl p-3 text-center shadow-[0_0_20px_rgba(249,115,22,0.35)] flex flex-col items-center relative">
                   <div className="absolute -top-2 -right-2 w-5 h-5 bg-orange-500 rounded-full flex items-center justify-center text-white border-2 border-dark-card">
                     <Loader className="w-3 h-3 animate-spin" />
                   </div>
@@ -429,7 +443,7 @@ const WorkflowDetailView = ({
               </div>
 
               {/* Node: Review (Waiting) */}
-              <div className="w-37.5-[#14151b] border border-[#282420] rounded-xl p-3 text-center z-10 flex flex-col items-center shadow-lg opacity-60">
+              <div className="w-40 bg-[#14151b] border border-[#282420] rounded-xl p-3 text-center z-10 flex flex-col items-center shadow-lg opacity-60">
                 <div className="w-8 h-8 rounded-lg bg-[#1c1d25] flex items-center justify-center mb-1 text-[#8a7f70]">
                   <Eye className="w-4 h-4" />
                 </div>
@@ -838,8 +852,8 @@ const WorkflowDetailView = ({
             <div className="p-6 font-mono text-xs text-cream-100 whitespace-pre-wrap leading-relaxed max-w-4xl bg-dark-base">
               {`PRAXIS ENGINEERING REPORT
 =========================
-Workflow ID : ${wf.id || "WF-2048"}
-Repository  : ${wf.project || "payments-api"} (Branch: ${wf.branch || "main"})
+Workflow ID : ${wfCustomId}
+Repository  : ${projectName} (Branch: ${branchName})
 Timestamp   : 2026-08-31 22:10:15
 Status      : IN PROGRESS (Autonomous Improvement Loop 2/3)
 

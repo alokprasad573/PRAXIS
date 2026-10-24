@@ -3,6 +3,7 @@ import { Plus, FolderGit2 } from "lucide-react";
 const ProjectsView = ({
   projects = [],
   onNavigate,
+  onSelectProject,
   onOpenConnectModal,
   onOpenNewWorkflow,
 }) => {
@@ -104,101 +105,104 @@ const ProjectsView = ({
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {projects.map((p) => {
-          const lang = p.language || p.lang || "Node.js";
-          const health = p.health || p.status || "healthy";
-          const agentsCount =
-            p.agents !== undefined ? p.agents : p.agentsActive || 0;
-          const chunkCount =
-            p.ragChunks !== undefined ? p.ragChunks : p.chunks || 0;
-          const lastTime = p.lastWorkflow || p.lastActive || "recently";
+          {projects.map((p) => {
+            const pId = p._id || p.id;
+            const lang = p.language || p.lang || "Node.js";
+            const health = p.health || p.status || "healthy";
+            const agentsCount =
+              p.agents !== undefined ? p.agents : p.agentsActive || 0;
+            const chunkCount =
+              p.ragChunks !== undefined ? p.ragChunks : p.chunks || 0;
+            const lastTime = p.lastWorkflow || p.lastActive || "recently";
 
-          return (
-            <div
-              key={p.id}
-              className="bg-dark-card border border-[#201d1a] hover:border-orange-500/40 rounded-xl p-6 transition-all hover:shadow-[0_4px_20px_rgba(249,115,22,0.1)] flex flex-col justify-between"
-            >
-              <div>
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center gap-2.5">
-                    <span
-                      className={`w-2.5 h-2.5 rounded-full ${getLangColor(
-                        lang,
-                      )}`}
-                    />
-                    <h3 className="text-base font-bold text-cream-100 font-mono">
-                      {p.name}
-                    </h3>
+            return (
+              <div
+                key={pId}
+                className="bg-dark-card border border-[#201d1a] hover:border-orange-500/40 rounded-xl p-6 transition-all hover:shadow-[0_4px_20px_rgba(249,115,22,0.1)] flex flex-col justify-between"
+              >
+                <div>
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2.5">
+                      <span
+                        className={`w-2.5 h-2.5 rounded-full ${getLangColor(
+                          lang,
+                        )}`}
+                      />
+                      <h3 className="text-base font-bold text-cream-100 font-mono">
+                        {p.name}
+                      </h3>
+                    </div>
+                    <div>{getHealthBadge(health)}</div>
                   </div>
-                  <div>{getHealthBadge(health)}</div>
+
+                  <div className="text-xs font-mono text-[#a89f91] mb-5 flex items-center gap-4 flex-wrap">
+                    <span className="text-[#d6c5a8]">{p.repo}</span>
+                    <span className="text-[#524c45]">•</span>
+                    <span>
+                      Branch: <b className="text-cream-100">{p.branch || "main"}</b>
+                    </span>
+                    <span className="text-[#524c45]">•</span>
+                    <span>{lang}</span>
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-3 p-3 rounded-lg bg-dark-base border border-[#201d1a] font-mono text-xs mb-5">
+                    <div>
+                      <div className="text-[10px] text-[#8a7f70] uppercase">
+                        Agents
+                      </div>
+                      <div className="text-cream-100 font-bold mt-0.5">
+                        {agentsCount} Active
+                      </div>
+                    </div>
+                    <div>
+                      <div className="text-[10px] text-[#8a7f70] uppercase">
+                        Workflows
+                      </div>
+                      <div className="text-cream-100 font-bold mt-0.5">
+                        {p.workflows || 0}
+                      </div>
+                    </div>
+                    <div>
+                      <div className="text-[10px] text-[#8a7f70] uppercase">
+                        RAG Chunks
+                      </div>
+                      <div className="text-orange-400 font-bold mt-0.5">
+                        {chunkCount.toLocaleString()}
+                      </div>
+                    </div>
+                  </div>
                 </div>
 
-                <div className="text-xs font-mono text-[#a89f91] mb-5 flex items-center gap-4 flex-wrap">
-                  <span className="text-[#d6c5a8]">{p.repo}</span>
-                  <span className="text-[#524c45]">•</span>
-                  <span>
-                    Branch: <b className="text-cream-100">{p.branch}</b>
-                  </span>
-                  <span className="text-[#524c45]">•</span>
-                  <span>{lang}</span>
-                </div>
-
-                <div className="grid grid-cols-3 gap-3 p-3 rounded-lg bg-dark-base border border-[#201d1a] font-mono text-xs mb-5">
-                  <div>
-                    <div className="text-[10px] text-[#8a7f70] uppercase">
-                      Agents
-                    </div>
-                    <div className="text-cream-100 font-bold mt-0.5">
-                      {agentsCount} Active
-                    </div>
-                  </div>
-                  <div>
-                    <div className="text-[10px] text-[#8a7f70] uppercase">
+                <div className="pt-4 border-t border-[#201d1a] flex items-center justify-between font-mono text-xs">
+                  <span className="text-[#8a7f70]">Last run: {lastTime}</span>
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() => onNavigate && onNavigate("workflows")}
+                      className="px-3 py-1.5 rounded-lg bg-[#14151b] border border-[#282420] text-[#d6c5a8] hover:text-cream-100 hover:border-orange-500/30 transition-colors cursor-pointer"
+                    >
                       Workflows
-                    </div>
-                    <div className="text-cream-100 font-bold mt-0.5">
-                      {p.workflows || 8}
-                    </div>
-                  </div>
-                  <div>
-                    <div className="text-[10px] text-[#8a7f70] uppercase">
-                      RAG Chunks
-                    </div>
-                    <div className="text-orange-400 font-bold mt-0.5">
-                      {chunkCount.toLocaleString()}
-                    </div>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (onSelectProject) onSelectProject(p);
+                        if (onOpenNewWorkflow) onOpenNewWorkflow(p);
+                      }}
+                      className="px-3 py-1.5 rounded-lg bg-orange-600 hover:bg-orange-500 text-white font-bold transition-colors cursor-pointer"
+                    >
+                      Run Task
+                    </button>
                   </div>
                 </div>
               </div>
-
-              <div className="pt-4 border-t border-[#201d1a] flex items-center justify-between font-mono text-xs">
-                <span className="text-[#8a7f70]">Last run: {lastTime}</span>
-                <div className="flex gap-2">
-                  <button
-                    type="button"
-                    onClick={() => onNavigate("workflows")}
-                    className="px-3 py-1.5 rounded-lg bg-[#14151b] border border-[#282420] text-[#d6c5a8] hover:text-cream-100 hover:border-orange-500/30 transition-colors cursor-pointer"
-                  >
-                    Workflows
-                  </button>
-                  <button
-                    type="button"
-                    onClick={onOpenNewWorkflow}
-                    className="px-3 py-1.5 rounded-lg bg-orange-600 hover:bg-orange-500 text-white font-bold transition-colors cursor-pointer"
-                  >
-                    Run Task
-                  </button>
-                </div>
-              </div>
-            </div>
-          );
-        })}
-      </div>
+            );
+          })}
+        </div>
       )}
     </div>
   );
 };
 
 export default ProjectsView;
-
 export { ProjectsView };

@@ -28,7 +28,6 @@ const sessionSchema = new mongoose.Schema(
     },
     role: {
       type: String,
-      enum: ["admin", "developer", "viewer", "Workspace Admin"],
       default: "developer",
     },
     device: {

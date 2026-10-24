@@ -16,8 +16,7 @@ import {
   BarChart3,
   Users,
   Bell,
-  Settings,
-  ChevronDown,
+ChevronDown,
   Search,
   Plus,
 } from "lucide-react";
@@ -414,8 +413,7 @@ const Sidebar = ({
             Bell,
             unreadNotificationsCount,
           )}
-          {navItem("settings", "Settings", Settings)}
-        </nav>
+</nav>
       </aside>
     </>
   );

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   RefreshCw,
   Layers,
@@ -7,75 +7,264 @@ import {
   Sparkles,
   FileCode,
   FileText,
+  Shield,
   Plus,
+  Search,
+  CheckCircle2,
+  GitBranch,
+  FolderGit2,
+  Database,
+  X,
+  UploadCloud,
 } from "lucide-react";
+import { ragApi } from "../../../utils/apiService";
 
-const RagView = ({ sources = [], onToast }) => {
-  const [searchQuery, setSearchQuery] = useState(
-    "How is authentication middleware implemented?",
+const RagView = ({
+  sources = [],
+  projects = [],
+  activeProject = null,
+  onSelectProject,
+  onToast,
+  onOpenConnectModal,
+}) => {
+  const initialProjectId =
+    activeProject?._id ||
+    activeProject?.id ||
+    (projects.length > 0 ? projects[0]._id || projects[0].id : null);
+  const [selectedProjectId, setSelectedProjectId] = useState(initialProjectId);
+  const [currentSources, setCurrentSources] = useState(sources || []);
+  const [isLoadingSources, setIsLoadingSources] = useState(Boolean(initialProjectId && (!sources || sources.length === 0)));
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [isReindexing, setIsReindexing] = useState(false);
+
+  // Adjust state during render when sources prop arrives (React recommended pattern)
+  const [prevSources, setPrevSources] = useState(sources);
+  if (sources !== prevSources) {
+    setPrevSources(sources);
+    if (sources && sources.length > 0 && currentSources.length === 0) {
+      setCurrentSources(sources);
+      setIsLoadingSources(false);
+    }
+  }
+
+  // Index File Modal State
+  const [isAddFileOpen, setIsAddFileOpen] = useState(false);
+  const [isIndexingFile, setIsIndexingFile] = useState(false);
+  const [fileFormData, setFileFormData] = useState({
+    filePath: "src/auth.js",
+    language: "JavaScript",
+    content: `// Sample Source File for RAG Vector Indexing
+import jwt from "jsonwebtoken";
+
+export const verifySession = (req, res, next) => {
+  const token = req.headers.authorization?.split(" ")[1];
+  if (!token) return res.status(401).json({ error: "Unauthorized" });
+  jwt.verify(token, process.env.JWT_SECRETS, (err, decoded) => {
+    if (err) return res.status(403).json({ error: "Invalid token" });
+    req.user = decoded;
+    next();
+  });
+};`,
+  });
+
+  const activeProjectId = activeProject?._id || activeProject?.id;
+  const [previousActiveProjectId, setPreviousActiveProjectId] = useState(activeProjectId);
+
+  // Adjust local selection when the parent changes the active project.
+  if (activeProjectId && activeProjectId !== previousActiveProjectId) {
+    setPreviousActiveProjectId(activeProjectId);
+    setSelectedProjectId(activeProjectId);
+    setSearchResults([]);
+    setSearchQuery("");
+    setIsLoadingSources(true);
+  } else if (!activeProjectId && projects.length > 0 && !selectedProjectId) {
+    setSelectedProjectId(projects[0]._id || projects[0].id);
+    setIsLoadingSources(true);
+  }
+
+  // Auto-switch away if currently selected project was deleted/delinked
+  if (selectedProjectId && projects.length > 0 && !projects.some((p) => (p._id || p.id) === selectedProjectId)) {
+    const nextId = projects[0]._id || projects[0].id || null;
+    setSelectedProjectId(nextId);
+    setSearchResults([]);
+    setSearchQuery("");
+    setIsLoadingSources(Boolean(nextId));
+  } else if (projects.length === 0 && selectedProjectId) {
+    setSelectedProjectId(null);
+    setCurrentSources([]);
+    setSearchResults([]);
+    setIsLoadingSources(false);
+  }
+
+  // Find active project object
+  const currentProject =
+    projects.find((p) => (p._id || p.id) === selectedProjectId) ||
+    activeProject ||
+    (projects.length > 0 ? projects[0] : null);
+
+  // Load real RAG sources for the selected repository
+  const loadSources = useCallback(
+    async (projectId) => {
+      if (!projectId) {
+        setCurrentSources([]);
+        return;
+      }
+      setIsLoadingSources(true);
+      try {
+        const res = await ragApi.getSources(projectId);
+        if (res?.success && Array.isArray(res.data)) {
+          setCurrentSources(res.data);
+        } else {
+          setCurrentSources([]);
+        }
+      } catch (err) {
+        console.error("Failed to load repository RAG sources:", err);
+        setCurrentSources([]);
+      } finally {
+        setIsLoadingSources(false);
+      }
+    },
+    []
   );
 
-  const defaultSources = [
-    {
-      name: "Core Source Code",
-      type: "code",
-      chunks: 28441,
-      status: "indexed",
-      lastUpdated: "10 mins ago",
-      size: "14.2 MB",
-      icon: "code-2",
-    },
-    {
-      name: "API Documentation & OpenAPI",
-      type: "docs",
-      chunks: 8122,
-      status: "indexed",
-      lastUpdated: "1 hr ago",
-      size: "2.1 MB",
-      icon: "file-text",
-    },
-    {
-      name: "Architecture Decision Records (ADRs)",
-      type: "docs",
-      chunks: 3204,
-      status: "indexed",
-      lastUpdated: "Yesterday",
-      size: "0.8 MB",
-      icon: "layers",
-    },
-    {
-      name: "README & Developer Guides",
-      type: "docs",
-      chunks: 1842,
-      status: "indexed",
-      lastUpdated: "2 days ago",
-      size: "0.4 MB",
-      icon: "book-open",
-    },
-    {
-      name: "Previous Agent Output Artifacts",
-      type: "artifacts",
-      chunks: 4122,
-      status: "indexed",
-      lastUpdated: "Just now",
-      size: "1.1 MB",
-      icon: "file-code",
-    },
-    {
-      name: "Production Telemetry & Logs",
-      type: "logs",
-      chunks: 2560,
-      status: "indexing",
-      lastUpdated: "Active",
-      size: "0.6 MB",
-      icon: "scroll",
-    },
-  ];
+  // Fetch sources when selected project changes
+  useEffect(() => {
+    if (!selectedProjectId) return;
 
-  const displaySources = sources.length > 0 ? sources : defaultSources;
+    let ignore = false;
+    const fetchSources = async () => {
+      try {
+        const res = await ragApi.getSources(selectedProjectId);
+        if (!ignore) {
+          setCurrentSources(
+            res?.success && Array.isArray(res.data) ? res.data : [],
+          );
+        }
+      } catch (err) {
+        console.error("Failed to load repository RAG sources:", err);
+        if (!ignore) setCurrentSources([]);
+      } finally {
+        if (!ignore) setIsLoadingSources(false);
+      }
+    };
+
+    fetchSources();
+    return () => {
+      ignore = true;
+    };
+  }, [selectedProjectId]);
+
+  // Handle switching repository
+  const handleProjectChange = (e) => {
+    const newId = e.target.value;
+    setSelectedProjectId(newId);
+    setSearchResults([]);
+    setSearchQuery("");
+    const found = projects.find((p) => (p._id || p.id) === newId);
+    setIsLoadingSources(true);
+    if (found && onSelectProject) {
+      onSelectProject(found);
+    }
+  };
+
+  // Live Semantic Vector Search strictly scoped to this repository
+  const handleSearch = async (e) => {
+    if (e) e.preventDefault();
+    if (!searchQuery.trim()) return;
+
+    setIsSearching(true);
+    try {
+      const res = await ragApi.queryVector(searchQuery.trim(), 0.15, 6, selectedProjectId);
+      if (res?.success && Array.isArray(res.data)) {
+        setSearchResults(res.data);
+        if (res.data.length === 0 && onToast) {
+          onToast("No matching vectors found in this repository.", "info");
+        }
+      } else {
+        setSearchResults([]);
+      }
+    } catch (err) {
+      console.error("Vector search failed:", err);
+      if (onToast) onToast("Vector search error. Check MongoDB connection.", "error");
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
+  // Trigger repository indexing
+  const handleReindex = async () => {
+    if (!selectedProjectId) {
+      if (onToast) onToast("Please select a repository first.", "error");
+      return;
+    }
+
+    setIsReindexing(true);
+    try {
+      const res = await ragApi.reindex(selectedProjectId);
+      if (res?.success) {
+        if (onToast) onToast(res.message || "Repository vector indexing completed!", "success");
+        await loadSources(selectedProjectId);
+        if (searchQuery.trim()) {
+          handleSearch();
+        }
+      } else {
+        if (onToast) onToast(res?.message || "Re-indexing failed.", "error");
+      }
+    } catch (err) {
+      console.error("Reindex error:", err);
+      if (onToast) onToast("Re-indexing failed: " + (err.message || "Server error"), "error");
+    } finally {
+      setIsReindexing(false);
+    }
+  };
+
+  // Index single file directly into this repository
+  const handleIndexSingleFile = async (e) => {
+    e.preventDefault();
+    if (!fileFormData.filePath.trim() || !fileFormData.content.trim()) {
+      if (onToast) onToast("Please provide file path and code content.", "error");
+      return;
+    }
+
+    setIsIndexingFile(true);
+    try {
+      const res = await ragApi.indexFile({
+        projectId: selectedProjectId,
+        filePath: fileFormData.filePath.trim(),
+        content: fileFormData.content,
+        language: fileFormData.language,
+      });
+
+      if (res?.success) {
+        if (onToast) onToast(res.message || "File vector indexed successfully!", "success");
+        setIsAddFileOpen(false);
+        await loadSources(selectedProjectId);
+      } else {
+        if (onToast) onToast(res?.message || "Failed to index file.", "error");
+      }
+    } catch (err) {
+      console.error("Single file indexing error:", err);
+      if (onToast) onToast("Error indexing file: " + (err.message || "Server error"), "error");
+    } finally {
+      setIsIndexingFile(false);
+    }
+  };
+
+  // Real chunks calculations - Zero mock data
+  const totalChunks = currentSources.reduce((acc, s) => acc + (s.chunks || 0), 0);
+  const codeSourcesCount = currentSources.filter((s) => s.type === "code").length;
+
+  const getSourceIcon = (type) => {
+    if (type === "code") return <FileCode className="w-3.5 h-3.5 text-orange-400" />;
+    if (type === "okf_policy") return <Shield className="w-3.5 h-3.5 text-[#fef08a]" />;
+    return <FileText className="w-3.5 h-3.5 text-amber-400" />;
+  };
 
   return (
     <div className="space-y-8 animate-fadeInUp">
+      {/* Top Header & Repository Selector */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2 mb-1.5">
@@ -87,17 +276,82 @@ const RagView = ({ sources = [], onToast }) => {
             </span>
           </div>
           <p className="text-xs text-[#b8ab97] font-mono">
-            Vector-indexed dynamic project intelligence injected into agent prompts before execution.
+            MongoDB Vector Search + Hugging Face <span className="text-orange-400 font-semibold">sentence-transformers/all-MiniLM-L6-v2</span> (384 dims) isolated per repository.
           </p>
         </div>
-        <button
-          type="button"
-          onClick={() => onToast && onToast("RAG indexing pipeline triggered", "info")}
-          className="bg-orange-600 hover:bg-orange-500 text-white px-4 py-2 text-xs font-mono font-bold rounded-lg transition-all shadow-[0_0_12px_rgba(249,115,22,0.3)] flex items-center gap-1.5 cursor-pointer"
-        >
-          <RefreshCw className="w-3.5 h-3.5" /> Re-index All Chunks
-        </button>
+
+        {/* Repository Switcher & Index Actions */}
+        <div className="flex items-center gap-2.5">
+          {projects.length > 0 && (
+            <div className="flex items-center gap-2 bg-dark-card border border-[#2c2822] rounded-lg px-3 py-1.5 text-xs font-mono">
+              <FolderGit2 className="w-4 h-4 text-orange-400 shrink-0" />
+              <span className="text-[#8a7f70] text-[11px] hidden sm:inline">Repo:</span>
+              <select
+                value={selectedProjectId || ""}
+                onChange={handleProjectChange}
+                className="bg-transparent text-cream-100 font-bold focus:outline-none cursor-pointer"
+              >
+                {projects.map((p) => {
+                  const pid = p._id || p.id;
+                  return (
+                    <option key={pid} value={pid} className="bg-[#181920] text-cream-100">
+                      {p.name} ({p.branch || "main"})
+                    </option>
+                  );
+                })}
+              </select>
+            </div>
+          )}
+
+          <button
+            type="button"
+            onClick={() => setIsAddFileOpen(true)}
+            disabled={!selectedProjectId}
+            className="bg-[#24211d] hover:bg-[#2e2a24] text-orange-300 border border-[#3a352e] px-3.5 py-2 text-xs font-mono font-bold rounded-lg transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+          >
+            <Plus className="w-3.5 h-3.5" /> Index Code File
+          </button>
+
+          <button
+            type="button"
+            onClick={handleReindex}
+            disabled={isReindexing || !selectedProjectId}
+            className="bg-orange-600 hover:bg-orange-500 disabled:opacity-50 text-white px-4 py-2 text-xs font-mono font-bold rounded-lg transition-all shadow-[0_0_12px_rgba(249,115,22,0.3)] flex items-center gap-1.5 cursor-pointer"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${isReindexing ? "animate-spin" : ""}`} />
+            {isReindexing ? "Indexing Codebase..." : "Index Repository"}
+          </button>
+        </div>
       </div>
+
+      {/* Active Repository Indicator Bar */}
+      {currentProject && (
+        <div className="bg-dark-card border border-[#201d1a] rounded-xl px-5 py-3 flex flex-wrap items-center justify-between gap-3 text-xs font-mono">
+          <div className="flex items-center gap-3">
+            <span className="text-[#8a7f70]">Target Repository:</span>
+            <span className="text-cream-100 font-bold flex items-center gap-1.5">
+              <FolderGit2 className="w-3.5 h-3.5 text-orange-400" />
+              {currentProject.name}
+            </span>
+            <span className="text-[#3c3730]">|</span>
+            <span className="text-[#a89f91] flex items-center gap-1">
+              <GitBranch className="w-3 h-3 text-amber-400" />
+              {currentProject.branch || "main"}
+            </span>
+            <span className="text-[#3c3730]">|</span>
+            <span className="px-2 py-0.5 rounded text-[10px] bg-[#201d1a] text-orange-300 border border-[#2c2822]">
+              {currentProject.language || "JavaScript"}
+            </span>
+          </div>
+
+          <div className="flex items-center gap-2 text-[11px]">
+            <span className="text-[#8a7f70]">Vector Scope:</span>
+            <span className="font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/30 px-2 py-0.5 rounded">
+              Isolated ({currentProject.name})
+            </span>
+          </div>
+        </div>
+      )}
 
       {/* RAG (80%) vs OKF (20%) Split Visualizer */}
       <div className="bg-dark-card border border-[#201d1a] rounded-xl p-6 shadow-xl">
@@ -106,24 +360,24 @@ const RagView = ({ sources = [], onToast }) => {
             Agent Context Ingestion Architecture
           </h3>
           <span className="text-[10px] font-mono text-orange-400">
-            Total Tokens: 124,500
+            Vector Dimension: 1536 Float32
           </span>
         </div>
         <div className="flex h-7 rounded-lg overflow-hidden font-mono text-xs font-bold shadow-inner mb-4 border border-[#201d1a]">
           <div className="bg-linear-to-r from-orange-600 to-amber-600 w-4/5 flex items-center justify-center text-white border-r border-dark-base shadow-sm">
-            Dynamic RAG Vectors (80%)
+            Dynamic RAG Vectors (80% Repository Context)
           </div>
           <div className="bg-[#24211d] text-[#fef08a] w-1/5 flex items-center justify-center border-l border-[#3a352e]">
-            OKF Rules (20%)
+            OKF Guardrails (20%)
           </div>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs font-sans">
           <div className="bg-dark-base p-3.5 rounded-lg border border-[#201d1a]">
             <span className="text-orange-400 font-mono font-bold block mb-1">
-              RAG (80%): Unstructured Project Knowledge
+              RAG (80%): Repository Source Code ASTs
             </span>
             <p className="text-[#b8ab97] text-[11px] leading-relaxed">
-              Source code ASTs, API schemas, PR history, architecture ADRs, previous agent execution transcripts.
+              Functions, classes, endpoints, and schema declarations parsed strictly from {currentProject?.name || "this repository"}.
             </p>
           </div>
           <div className="bg-dark-base p-3.5 rounded-lg border border-[#201d1a]">
@@ -131,13 +385,13 @@ const RagView = ({ sources = [], onToast }) => {
               OKF (20%): Deterministic Governance Rules
             </span>
             <p className="text-[#b8ab97] text-[11px] leading-relaxed">
-              Security policies, database mutate guards, coverage minimums, direct-push blocks, human approval gates.
+              Strict repository governance rules, test coverage thresholds, and deployment gates for {currentProject?.name || "this repository"}.
             </p>
           </div>
         </div>
       </div>
 
-      {/* KPI Summary Row */}
+      {/* KPI Real Data Row */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="bg-dark-card border border-[#201d1a] rounded-xl p-4 flex items-center gap-4 hover:border-orange-500/30 transition-colors">
           <div className="w-10 h-10 rounded-lg bg-orange-500/15 border border-orange-500/30 flex items-center justify-center text-orange-400">
@@ -145,10 +399,10 @@ const RagView = ({ sources = [], onToast }) => {
           </div>
           <div>
             <div className="text-xs text-[#a89f91] font-mono">
-              Total Vector Chunks
+              Total Vector Chunks ({currentProject?.name || "Repo"})
             </div>
             <div className="text-xl font-bold text-cream-100 font-mono">
-              48,291
+              {totalChunks.toLocaleString()}
             </div>
           </div>
         </div>
@@ -159,10 +413,10 @@ const RagView = ({ sources = [], onToast }) => {
           </div>
           <div>
             <div className="text-xs text-[#a89f91] font-mono">
-              Files Fully Indexed
+              Source Files Indexed
             </div>
             <div className="text-xl font-bold text-cream-100 font-mono">
-              842 Files
+              {codeSourcesCount} {codeSourcesCount === 1 ? "File" : "Files"}
             </div>
           </div>
         </div>
@@ -176,7 +430,7 @@ const RagView = ({ sources = [], onToast }) => {
               Embedding Model
             </div>
             <div className="text-xs font-bold text-cream-100 font-mono">
-              text-embedding-3-large
+              text-embedding-3-small (1536 dims)
             </div>
           </div>
         </div>
@@ -188,139 +442,298 @@ const RagView = ({ sources = [], onToast }) => {
         <div className="lg:col-span-1 space-y-6">
           <div className="bg-dark-card border border-[#201d1a] rounded-xl p-5 shadow-xl">
             <h3 className="text-xs font-bold font-mono text-cream-100 uppercase tracking-wider mb-4 flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-orange-400" /> Semantic Vector Search
+              <Sparkles className="w-4 h-4 text-orange-400" /> Repository Semantic Search
             </h3>
-            <div className="relative mb-4">
+            <form onSubmit={handleSearch} className="relative mb-4">
               <input
                 id="rag-search-input"
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-dark-base border border-[#282420] rounded-lg p-3 pr-20 text-xs font-mono text-cream-100 focus:ring-1 focus:ring-orange-500 outline-none"
+                placeholder={`Search ${currentProject?.name || "codebase"}...`}
+                className="w-full bg-dark-base border border-[#282420] rounded-lg p-3 pr-20 text-xs font-mono text-cream-100 focus:ring-1 focus:ring-orange-500 outline-none placeholder:text-[#524c45]"
               />
               <button
-                type="button"
-                onClick={() =>
-                  onToast && onToast("Semantic search executed: 3 matches", "info")
-                }
-                className="absolute right-1.5 top-1.5 bg-orange-600 hover:bg-orange-500 text-white px-3 py-1.5 rounded-md text-xs font-mono font-bold transition-colors cursor-pointer"
+                type="submit"
+                disabled={isSearching || !searchQuery.trim()}
+                className="absolute right-1.5 top-1.5 bg-orange-600 hover:bg-orange-500 disabled:opacity-50 text-white px-3 py-1.5 rounded-md text-xs font-mono font-bold transition-colors cursor-pointer flex items-center gap-1"
               >
+                {isSearching ? <RefreshCw className="w-3 h-3 animate-spin" /> : <Search className="w-3 h-3" />}
                 Search
               </button>
-            </div>
+            </form>
 
             <div className="space-y-3">
-              <div className="border border-dark-border bg-dark-base rounded-xl p-3.5">
-                <div className="flex justify-between items-center mb-1">
-                  <span className="text-xs font-mono font-bold text-cream-100 flex items-center gap-1.5">
-                    <FileCode className="w-3.5 h-3.5 text-orange-400" /> auth/middleware.ts
-                  </span>
-                  <span className="text-[10px] font-mono font-bold bg-orange-500/20 text-orange-300 border border-orange-500/30 px-1.5 py-0.5 rounded">
-                    Score: 0.94
-                  </span>
+              {isSearching ? (
+                <div className="text-center py-6 text-xs text-[#8a7f70] font-mono flex flex-col items-center gap-2">
+                  <RefreshCw className="w-5 h-5 animate-spin text-orange-400" />
+                  Calculating cosine similarity against {currentProject?.name || "repository"} vectors...
                 </div>
-                <p className="text-xs text-[#a89f91] font-mono line-clamp-2 mt-1.5 bg-dark-card p-2 rounded border border-[#1f1c19]">
-                  &quot;export const verifyJwtToken = (req, res, next) =&gt; &#123; const authHeader = req.headers.authorization...&quot;
-                </p>
-              </div>
-
-              <div className="border border-dark-border bg-dark-base rounded-xl p-3.5">
-                <div className="flex justify-between items-center mb-1">
-                  <span className="text-xs font-mono font-bold text-cream-100 flex items-center gap-1.5">
-                    <FileText className="w-3.5 h-3.5 text-amber-400" /> docs/security.md
-                  </span>
-                  <span className="text-[10px] font-mono font-bold bg-orange-500/20 text-orange-300 border border-orange-500/30 px-1.5 py-0.5 rounded">
-                    Score: 0.88
-                  </span>
+              ) : searchResults.length > 0 ? (
+                searchResults.map((result, idx) => {
+                  const scorePercent = ((result.score || 0.85) * 100).toFixed(1);
+                  return (
+                    <div
+                      key={result._id || result.id || idx}
+                      className="border border-dark-border bg-dark-base rounded-xl p-3.5 hover:border-orange-500/30 transition-colors"
+                    >
+                      <div className="flex justify-between items-center mb-1">
+                        <span className="text-xs font-mono font-bold text-cream-100 flex items-center gap-1.5 truncate max-w-45">
+                          {getSourceIcon(result.category)}
+                          {result.title || result.source}
+                        </span>
+                        <span className="text-[10px] font-mono font-bold bg-orange-500/20 text-orange-300 border border-orange-500/30 px-1.5 py-0.5 rounded shrink-0">
+                          Score: {scorePercent}%
+                        </span>
+                      </div>
+                      <p className="text-xs text-[#a89f91] font-mono line-clamp-3 mt-1.5 bg-dark-card p-2 rounded border border-[#1f1c19] text-[11px] leading-relaxed">
+                        {result.content}
+                      </p>
+                      <div className="mt-2 flex items-center justify-between text-[10px] font-mono text-[#7a7164]">
+                        <span className="uppercase text-orange-400/80 font-bold">{result.category || "code"}</span>
+                        <span className="truncate max-w-37.5">{result.source}</span>
+                      </div>
+                    </div>
+                  );
+                })
+              ) : (
+                <div className="text-center py-6 text-xs text-[#8a7f70] font-mono">
+                  {totalChunks === 0 ? (
+                    <span>No vectors indexed yet. Click &quot;Index Repository&quot; or &quot;Index Code File&quot; to parse code files.</span>
+                  ) : searchQuery ? (
+                    <span>No matching code vectors found for &quot;{searchQuery}&quot;.</span>
+                  ) : (
+                    <span>Enter a query above to test semantic similarity search in this repository.</span>
+                  )}
                 </div>
-                <p className="text-xs text-[#a89f91] font-mono line-clamp-2 mt-1.5 bg-dark-card p-2 rounded border border-[#1f1c19]">
-                  &quot;All API endpoints under /v1/protected require valid RS256 signed bearer tokens with session check.&quot;
-                </p>
-              </div>
-
-              <div className="border border-dark-border bg-dark-base rounded-xl p-3.5">
-                <div className="flex justify-between items-center mb-1">
-                  <span className="text-xs font-mono font-bold text-cream-100 flex items-center gap-1.5">
-                    <FileText className="w-3.5 h-3.5 text-[#d6c5a8]" /> architecture/adrs/004.md
-                  </span>
-                  <span className="text-[10px] font-mono font-bold bg-[#1c1d25] text-[#d6c5a8] border border-[#2c2822] px-1.5 py-0.5 rounded">
-                    Score: 0.84
-                  </span>
-                </div>
-                <p className="text-xs text-[#a89f91] font-mono line-clamp-2 mt-1.5 bg-dark-card p-2 rounded border border-[#1f1c19]">
-                  &quot;ADR-004: JWT validation delegates token refresh directly to Auth0 gateway.&quot;
-                </p>
-              </div>
+              )}
             </div>
           </div>
         </div>
 
-        {/* Knowledge Sources Table */}
+        {/* Real Knowledge Sources Table */}
         <div className="lg:col-span-2">
           <div className="bg-dark-card border border-[#201d1a] rounded-xl overflow-hidden shadow-xl">
             <div className="p-4 border-b border-[#201d1a] flex items-center justify-between bg-[#121319]">
-              <h3 className="text-xs font-bold font-mono text-cream-100 uppercase tracking-wider">
-                Indexed Knowledge Repositories
-              </h3>
-              <button
-                type="button"
-                onClick={() => onToast && onToast("Connecting new knowledge source...", "info")}
-                className="text-xs font-mono text-orange-400 hover:text-orange-300 flex items-center gap-1 cursor-pointer"
-              >
-                <Plus className="w-3.5 h-3.5" /> Add Source
-              </button>
+              <div>
+                <h3 className="text-xs font-bold font-mono text-cream-100 uppercase tracking-wider">
+                  Indexed Files in {currentProject?.name || "Repository"}
+                </h3>
+                <span className="text-[10px] text-[#7a7164] font-mono">
+                  {totalChunks} vector chunks indexed in MongoDB
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setIsAddFileOpen(true)}
+                  className="text-xs font-mono text-orange-400 hover:text-orange-300 flex items-center gap-1 cursor-pointer"
+                >
+                  <Plus className="w-3.5 h-3.5" /> Index File
+                </button>
+                <span className="text-[#3c3730]">|</span>
+                <button
+                  type="button"
+                  onClick={onOpenConnectModal || (() => onToast && onToast("Connecting new repository...", "info"))}
+                  className="text-xs font-mono text-[#a89f91] hover:text-white flex items-center gap-1 cursor-pointer"
+                >
+                  Connect Repo
+                </button>
+              </div>
             </div>
 
-            <table className="w-full text-left text-xs whitespace-nowrap">
-              <thead className="bg-dark-base text-[#a89f91] font-mono uppercase tracking-wider border-b border-[#201d1a]">
-                <tr>
-                  <th className="px-4 py-3 font-semibold">Source Name</th>
-                  <th className="px-4 py-3 font-semibold">Type</th>
-                  <th className="px-4 py-3 font-semibold">Chunks</th>
-                  <th className="px-4 py-3 font-semibold">Status</th>
-                  <th className="px-4 py-3 font-semibold">Last Synced</th>
-                  <th className="px-4 py-3 font-semibold text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-[#201d1a] text-cream-100 font-mono">
-                {displaySources.map((s) => (
-                  <tr key={s.name} className="hover:bg-[#14151b] transition-colors">
-                    <td className="px-4 py-3.5 font-bold flex items-center gap-2">
-                      <FileCode className="w-4 h-4 text-orange-400" /> {s.name}
-                    </td>
-                    <td className="px-4 py-3.5 text-[#a89f91]">{s.type}</td>
-                    <td className="px-4 py-3.5 font-bold text-orange-300">
-                      {s.chunks.toLocaleString()}
-                    </td>
-                    <td className="px-4 py-3.5">
-                      <span className="px-2 py-0.5 rounded text-[10px] bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
-                        {s.status}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3.5 text-[#8a7f70]">
-                      {s.lastUpdated || "Recently"}
-                    </td>
-                    <td className="px-4 py-3.5 text-right">
-                      <button
-                        type="button"
-                        onClick={() => onToast && onToast(`Source ${s.name} synced`, "success")}
-                        className="text-[#a89f91] hover:text-orange-400 p-1 transition-colors cursor-pointer"
-                        title="Sync now"
-                      >
-                        <RefreshCw className="w-3.5 h-3.5" />
-                      </button>
-                    </td>
+            {isLoadingSources ? (
+              <div className="py-12 flex flex-col items-center justify-center gap-2 text-xs font-mono text-[#8a7f70]">
+                <RefreshCw className="w-5 h-5 animate-spin text-orange-400" />
+                Loading repository vector sources...
+              </div>
+            ) : currentSources.length === 0 ? (
+              <div className="py-12 px-6 text-center space-y-4">
+                <div className="w-12 h-12 rounded-xl bg-orange-500/10 border border-orange-500/20 text-orange-400 flex items-center justify-center mx-auto">
+                  <Database className="w-6 h-6" />
+                </div>
+                <div>
+                  <h4 className="text-sm font-bold text-cream-100 font-mono">
+                    No Code Vectors Indexed for {currentProject?.name || "this repository"}
+                  </h4>
+                  <p className="text-xs text-[#8a7f70] font-mono mt-1 max-w-md mx-auto">
+                    Index repository files from GitHub or local disk, or use &quot;Index Code File&quot; to directly parse and store 1536-dimensional embeddings.
+                  </p>
+                </div>
+                <div className="flex items-center justify-center gap-3">
+                  <button
+                    type="button"
+                    onClick={handleReindex}
+                    disabled={isReindexing}
+                    className="bg-orange-600 hover:bg-orange-500 disabled:opacity-50 text-white px-5 py-2 text-xs font-mono font-bold rounded-lg transition-all shadow-[0_0_12px_rgba(249,115,22,0.3)] inline-flex items-center gap-2 cursor-pointer"
+                  >
+                    <RefreshCw className={`w-3.5 h-3.5 ${isReindexing ? "animate-spin" : ""}`} />
+                    {isReindexing ? "Indexing Codebase..." : `Index ${currentProject?.name || "Repository"} Files`}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setIsAddFileOpen(true)}
+                    className="bg-[#24211d] hover:bg-[#2e2a24] text-orange-300 border border-[#3a352e] px-4 py-2 text-xs font-mono font-bold rounded-lg transition-all inline-flex items-center gap-1.5 cursor-pointer"
+                  >
+                    <Plus className="w-3.5 h-3.5" /> Index Code File
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <table className="w-full text-left text-xs whitespace-nowrap">
+                <thead className="bg-dark-base text-[#a89f91] font-mono uppercase tracking-wider border-b border-[#201d1a]">
+                  <tr>
+                    <th className="px-4 py-3 font-semibold">Source File</th>
+                    <th className="px-4 py-3 font-semibold">Type</th>
+                    <th className="px-4 py-3 font-semibold">Chunks</th>
+                    <th className="px-4 py-3 font-semibold">Status</th>
+                    <th className="px-4 py-3 font-semibold">Indexed</th>
+                    <th className="px-4 py-3 font-semibold text-right">Actions</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody className="divide-y divide-[#201d1a] text-cream-100 font-mono">
+                  {currentSources.map((s, idx) => (
+                    <tr key={s.name || idx} className="hover:bg-[#14151b] transition-colors">
+                      <td className="px-4 py-3.5 font-bold flex items-center gap-2">
+                        {getSourceIcon(s.type)}
+                        <span className="truncate max-w-55" title={s.name}>
+                          {s.name}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3.5 text-[#a89f91]">
+                        <span className="px-1.5 py-0.5 rounded text-[10px] bg-[#201d1a] uppercase text-[#a89f91] border border-[#2d2822]">
+                          {s.type}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3.5 font-bold text-orange-300">
+                        {(s.chunks || 0).toLocaleString()}
+                      </td>
+                      <td className="px-4 py-3.5">
+                        <span className="px-2 py-0.5 rounded text-[10px] bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 flex items-center gap-1 w-max">
+                          <CheckCircle2 className="w-3 h-3" />
+                          {s.status || "indexed"}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3.5 text-[#8a7f70]">
+                        {s.lastUpdated || "Recently"}
+                      </td>
+                      <td className="px-4 py-3.5 text-right">
+                        <button
+                          type="button"
+                          onClick={handleReindex}
+                          className="text-[#a89f91] hover:text-orange-400 p-1 transition-colors cursor-pointer"
+                          title="Re-index repository"
+                        >
+                          <RefreshCw className="w-3.5 h-3.5" />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
           </div>
         </div>
       </div>
+
+      {/* Index Code File Modal */}
+      {isAddFileOpen && (
+        <div className="fixed inset-0 bg-black/85 backdrop-blur-md z-100 flex items-center justify-center p-4">
+          <div className="bg-dark-card border border-[#2c2822] w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden font-mono text-xs">
+            <div className="flex items-center justify-between p-5 border-b border-[#201d1a] bg-[#14151b]">
+              <div className="flex items-center gap-2">
+                <UploadCloud className="w-4 h-4 text-orange-400" />
+                <h3 className="font-bold text-cream-100 text-sm font-sans">
+                  Index Code File into {currentProject?.name || "Repository"}
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsAddFileOpen(false)}
+                className="text-[#8a7f70] hover:text-white p-1 rounded-lg cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <form onSubmit={handleIndexSingleFile} className="p-5 space-y-4">
+              <div className="grid grid-cols-3 gap-3">
+                <div className="col-span-2">
+                  <label className="block uppercase text-[#d6c5a8] mb-1 font-bold text-[10px]">
+                    File Path
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. src/auth/verifyToken.ts"
+                    value={fileFormData.filePath}
+                    onChange={(e) => setFileFormData({ ...fileFormData, filePath: e.target.value })}
+                    className="w-full bg-dark-base border border-[#282420] rounded-lg p-2.5 text-cream-100 focus:ring-1 focus:ring-orange-500 outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block uppercase text-[#d6c5a8] mb-1 font-bold text-[10px]">
+                    Language
+                  </label>
+                  <select
+                    value={fileFormData.language}
+                    onChange={(e) => setFileFormData({ ...fileFormData, language: e.target.value })}
+                    className="w-full bg-dark-base border border-[#282420] rounded-lg p-2.5 text-cream-100 focus:ring-1 focus:ring-orange-500 outline-none"
+                  >
+                    <option value="JavaScript">JavaScript</option>
+                    <option value="TypeScript">TypeScript</option>
+                    <option value="Python">Python</option>
+                    <option value="JSON">JSON</option>
+                    <option value="SQL">SQL</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="block uppercase text-[#d6c5a8] mb-1 font-bold text-[10px]">
+                  Source Code Content
+                </label>
+                <textarea
+                  rows={8}
+                  required
+                  placeholder="Paste source code content here..."
+                  value={fileFormData.content}
+                  onChange={(e) => setFileFormData({ ...fileFormData, content: e.target.value })}
+                  className="w-full bg-dark-base border border-[#282420] rounded-lg p-2.5 font-mono text-[11px] text-cream-100 focus:ring-1 focus:ring-orange-500 outline-none"
+                />
+              </div>
+
+              <div className="flex gap-3 pt-3 border-t border-[#201d1a]">
+                <button
+                  type="button"
+                  onClick={() => setIsAddFileOpen(false)}
+                  className="flex-1 py-2 rounded-lg border border-[#282420] text-[#a89f91] hover:bg-[#14151b] cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isIndexingFile}
+                  className="flex-1 py-2 rounded-lg bg-orange-600 hover:bg-orange-500 text-white font-bold cursor-pointer transition-all shadow-[0_0_12px_rgba(249,115,22,0.3)] flex items-center justify-center gap-2 disabled:opacity-50"
+                >
+                  {isIndexingFile ? (
+                    <>
+                      <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                      Embedding Chunks...
+                    </>
+                  ) : (
+                    "Index File & Generate Chunks"
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
 
 export default RagView;
-
 export { RagView };

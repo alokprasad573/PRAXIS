@@ -40,7 +40,11 @@ axiosInstance.interceptors.response.use(
     if (error.response) {
       const url = error.config?.url || "";
       const isAuthEndpoint =
-        url.includes("/login") || url.includes("/register") || url.includes("/auth");
+  url.includes("/login") ||
+  url.includes("/register") ||
+  url.includes("/auth") ||
+  url.includes("/accept-invite") ||
+  url.includes("/invite-details");
         
       if (error.response.status === 401 && !isAuthEndpoint) {
         localStorage.removeItem("token");

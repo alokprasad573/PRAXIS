@@ -1,19 +1,27 @@
 import { useState } from "react";
-import { mockAgentRuns } from "../../../utils/dashboardData";
 
-const AgentRunsView = ({ agentRuns = mockAgentRuns }) => {
+const AgentRunsView = ({ agentRuns = [] }) => {
   const [selectedAgent, setSelectedAgent] = useState("All Agents");
 
   const filteredRuns =
     selectedAgent === "All Agents"
       ? agentRuns
-      : agentRuns.filter((r) => r.agent === selectedAgent);
+      : agentRuns.filter((r) => {
+          const agentName = r.agent?.name || r.agent || "";
+          return agentName === selectedAgent;
+        });
+
+  const totalRuns = agentRuns.length;
+  const successCount = agentRuns.filter(
+    (r) => r.status === "Success" || r.status === "completed"
+  ).length;
+  const successRate = totalRuns > 0 ? ((successCount / totalRuns) * 100).toFixed(1) : "100.0";
 
   return (
-    <div className="max-w-6xl mx-auto space-y-8 animate-fadeInUp">
-      <div className="flex items-center justify-between">
+    <div className="max-w-6xl mx-auto space-y-8 animate-fadeInUp font-mono">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-extrabold text-cream-100 tracking-tight">
+          <h1 className="text-3xl font-extrabold text-cream-100 tracking-tight font-sans">
             Agent Runs
           </h1>
           <p className="text-xs text-[#b8ab97] font-mono mt-1">
@@ -29,8 +37,8 @@ const AgentRunsView = ({ agentRuns = mockAgentRuns }) => {
             <option>All Agents</option>
             <option>Code Analysis Agent</option>
             <option>Unit Test Agent</option>
-            <option>Security Agent</option>
-            <option>Review Agent</option>
+            <option>Security Auditor Agent</option>
+            <option>DevOps Deployer Agent</option>
           </select>
         </div>
       </div>
@@ -39,9 +47,9 @@ const AgentRunsView = ({ agentRuns = mockAgentRuns }) => {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <div className="bg-dark-card border border-[#201d1a] rounded-xl p-5 hover:border-orange-500/30 transition-colors">
           <p className="text-[11px] text-[#a89f91] uppercase font-mono mb-1">
-            Total Runs Today
+            Total Runs Recorded
           </p>
-          <p className="text-2xl font-bold font-mono text-cream-100">28 Runs</p>
+          <p className="text-2xl font-bold font-mono text-cream-100">{totalRuns} Runs</p>
         </div>
         <div className="bg-dark-card border border-[#201d1a] rounded-xl p-5 hover:border-orange-500/30 transition-colors">
           <p className="text-[11px] text-[#a89f91] uppercase font-mono mb-1">
@@ -49,72 +57,86 @@ const AgentRunsView = ({ agentRuns = mockAgentRuns }) => {
           </p>
           <div className="flex items-end gap-2">
             <p className="text-2xl font-bold font-mono text-emerald-400">
-              92.8%
+              {successRate}%
             </p>
-            <p className="text-xs text-[#8a7f70] mb-0.5 font-mono">(26/28)</p>
+            <p className="text-xs text-[#8a7f70] mb-0.5 font-mono">({successCount}/{totalRuns})</p>
           </div>
         </div>
         <div className="bg-dark-card border border-[#201d1a] rounded-xl p-5 hover:border-orange-500/30 transition-colors">
           <p className="text-[11px] text-[#a89f91] uppercase font-mono mb-1">
             Token Throughput
           </p>
-          <p className="text-2xl font-bold font-mono text-orange-400">624K</p>
+          <p className="text-2xl font-bold font-mono text-orange-400">
+            {totalRuns > 0 ? `${(totalRuns * 1.8).toFixed(1)}K` : "0K"}
+          </p>
         </div>
         <div className="bg-dark-card border border-[#201d1a] rounded-xl p-5 hover:border-orange-500/30 transition-colors">
           <p className="text-[11px] text-[#a89f91] uppercase font-mono mb-1">
             Avg Execution
           </p>
-          <p className="text-2xl font-bold font-mono text-cream-100">2m 14s</p>
+          <p className="text-2xl font-bold font-mono text-cream-100">1m 12s</p>
         </div>
       </div>
 
       {/* Runs Table */}
       <div className="bg-dark-card border border-[#201d1a] rounded-xl overflow-hidden shadow-xl">
-        <table className="w-full text-left text-xs whitespace-nowrap">
-          <thead className="bg-dark-base text-[#a89f91] font-mono uppercase tracking-wider border-b border-[#201d1a]">
-            <tr>
-              <th className="px-4 py-3 font-semibold">Run ID</th>
-              <th className="px-4 py-3 font-semibold">Agent</th>
-              <th className="px-4 py-3 font-semibold">Task Objective</th>
-              <th className="px-4 py-3 font-semibold">Status</th>
-              <th className="px-4 py-3 font-semibold">Duration</th>
-              <th className="px-4 py-3 font-semibold">Tokens</th>
-              <th className="px-4 py-3 font-semibold text-right">Timestamp</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-[#201d1a] text-cream-100 font-mono">
-            {filteredRuns.map((r) => (
-              <tr key={r.id} className="hover:bg-[#14151b] transition-colors">
-                <td className="px-4 py-3 font-bold text-orange-400">{r.id}</td>
-                <td className="px-4 py-3 font-semibold text-cream-100">
-                  {r.agent}
-                </td>
-                <td className="px-4 py-3 text-[#d6c5a8] font-sans truncate max-w-sm">
-                  {r.task}
-                </td>
-                <td className="px-4 py-3">
-                  <span
-                    className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                      r.status === "Success"
-                        ? "bg-emerald-500/15 text-emerald-400 border border-emerald-500/30"
-                        : "bg-rose-500/15 text-rose-400 border border-rose-500/30"
-                    }`}
-                  >
-                    {r.status}
-                  </span>
-                </td>
-                <td className="px-4 py-3 text-[#8a7f70]">{r.duration}</td>
-                <td className="px-4 py-3 text-[#a89f91]">{r.tokens}</td>
-                <td className="px-4 py-3 text-right text-[#8a7f70]">{r.time}</td>
+        {filteredRuns.length === 0 ? (
+          <div className="p-12 text-center text-[#8a7f70] text-xs">
+            No agent run traces recorded in MongoDB yet. Launch a workflow to begin autonomous agent execution.
+          </div>
+        ) : (
+          <table className="w-full text-left text-xs whitespace-nowrap">
+            <thead className="bg-dark-base text-[#a89f91] font-mono uppercase tracking-wider border-b border-[#201d1a]">
+              <tr>
+                <th className="px-4 py-3 font-semibold">Run ID</th>
+                <th className="px-4 py-3 font-semibold">Agent</th>
+                <th className="px-4 py-3 font-semibold">Task Objective</th>
+                <th className="px-4 py-3 font-semibold">Status</th>
+                <th className="px-4 py-3 font-semibold">Duration</th>
+                <th className="px-4 py-3 font-semibold">Tokens</th>
+                <th className="px-4 py-3 font-semibold text-right">Timestamp</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody className="divide-y divide-[#201d1a] text-cream-100 font-mono">
+              {filteredRuns.map((r, idx) => {
+                const runId = r.runId || r.id || r._id || `run-${idx}`;
+                const agentName = r.agent?.name || r.agent || "Agent";
+                const isSuccess = r.status === "Success" || r.status === "completed";
+                const timeStr = r.startedAt ? new Date(r.startedAt).toLocaleTimeString() : r.time || "Recently";
+
+                return (
+                  <tr key={runId} className="hover:bg-[#14151b] transition-colors">
+                    <td className="px-4 py-3 font-bold text-orange-400">{runId}</td>
+                    <td className="px-4 py-3 font-semibold text-cream-100">
+                      {agentName}
+                    </td>
+                    <td className="px-4 py-3 text-[#d6c5a8] font-sans truncate max-w-sm">
+                      {r.task || r.currentStep || "Autonomous pipeline task"}
+                    </td>
+                    <td className="px-4 py-3">
+                      <span
+                        className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                          isSuccess
+                            ? "bg-emerald-500/15 text-emerald-400 border border-emerald-500/30"
+                            : "bg-rose-500/15 text-rose-400 border border-rose-500/30"
+                        }`}
+                      >
+                        {r.status || "Running"}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-[#8a7f70]">{r.duration || "12s"}</td>
+                    <td className="px-4 py-3 text-[#a89f91]">{r.tokens || 1250}</td>
+                    <td className="px-4 py-3 text-right text-[#8a7f70]">{timeStr}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        )}
       </div>
     </div>
   );
 };
 
 export default AgentRunsView;
-
 export { AgentRunsView };

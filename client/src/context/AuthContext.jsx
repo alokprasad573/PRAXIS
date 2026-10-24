@@ -102,6 +102,16 @@ export const AuthProvider = ({ children }) => {
     setIsAuthenticated(true);
   }, []);
 
+  // 4. Update user locally (Profile edit)
+  const updateUser = useCallback((updated) => {
+    setUser((prev) => {
+      const merged = { ...prev, ...updated };
+      const storage = sessionStorage.getItem("token") ? sessionStorage : localStorage;
+      storage.setItem("user", JSON.stringify(merged));
+      return merged;
+    });
+  }, []);
+
   return (
     <AuthContext.Provider
       value={{
@@ -110,6 +120,7 @@ export const AuthProvider = ({ children }) => {
         loading,
         login,
         logout,
+        updateUser,
       }}
     >
       {children}

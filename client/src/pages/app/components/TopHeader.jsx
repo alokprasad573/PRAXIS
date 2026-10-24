@@ -30,8 +30,7 @@ const TopHeader = ({
       analytics: "analytics",
       team: "team",
       notifications: "notifications",
-      settings: "settings",
-    };
+};
     return labels[page] || page;
   };
 

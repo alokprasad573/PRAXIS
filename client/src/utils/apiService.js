@@ -96,7 +96,52 @@ export const dashboardApi = {
 };
 
 // ==========================================
-// 3. PROJECTS & REPOSITORIES APIs
+// 3. WORKSPACES & TEAM APIs
+// ==========================================
+export const workspaceApi = {
+  getCurrent: async () => {
+    const res = await axiosInstance.get(API_PATHS.WORKSPACES.CURRENT);
+    return res.data;
+  },
+
+  getMembers: async () => {
+    const res = await axiosInstance.get(API_PATHS.WORKSPACES.MEMBERS);
+    return res.data;
+  },
+
+  inviteMember: async (payload) => {
+    const res = await axiosInstance.post(API_PATHS.WORKSPACES.MEMBERS, payload);
+    return res.data;
+  },
+
+  getInviteDetails: async (token) => {
+    const res = await axiosInstance.get(`${API_PATHS.WORKSPACES.INVITE_DETAILS}?token=${token}`);
+    return res.data;
+  },
+
+  acceptInvite: async (payload) => {
+    const res = await axiosInstance.post(API_PATHS.WORKSPACES.ACCEPT_INVITE, payload);
+    return res.data;
+  },
+
+  updateRole: async (memberId, role) => {
+    const res = await axiosInstance.patch(
+      API_PATHS.WORKSPACES.UPDATE_ROLE(memberId),
+      { role }
+    );
+    return res.data;
+  },
+
+  removeMember: async (memberId) => {
+    const res = await axiosInstance.delete(
+      API_PATHS.WORKSPACES.REMOVE_MEMBER(memberId)
+    );
+    return res.data;
+  },
+};
+
+// ==========================================
+// 4. PROJECTS & REPOSITORIES APIs
 // ==========================================
 export const projectApi = {
   getAll: async () => {
@@ -134,6 +179,11 @@ export const workflowApi = {
     return res.data;
   },
 
+  launch: async (payload) => {
+    const res = await axiosInstance.post(API_PATHS.WORKFLOWS.LAUNCH, payload);
+    return res.data;
+  },
+
   getById: async (id) => {
     const res = await axiosInstance.get(API_PATHS.WORKFLOWS.GET_BY_ID(id));
     return res.data;
@@ -151,7 +201,27 @@ export const workflowApi = {
 };
 
 // ==========================================
-// 5. AGENTS & DIAGNOSTICS APIs
+// 5. APPROVALS & GOVERNANCE GATES APIs
+// ==========================================
+export const approvalApi = {
+  getPending: async () => {
+    const res = await axiosInstance.get(API_PATHS.APPROVALS.PENDING);
+    return res.data;
+  },
+
+  decide: async (id, decision) => {
+    const res = await axiosInstance.post(API_PATHS.APPROVALS.DECIDE(id), { decision });
+    return res.data;
+  },
+
+  getHistory: async () => {
+    const res = await axiosInstance.get(API_PATHS.APPROVALS.HISTORY);
+    return res.data;
+  },
+};
+
+// ==========================================
+// 6. AGENTS & DIAGNOSTICS APIs
 // ==========================================
 export const agentApi = {
   getLibrary: async () => {
@@ -174,28 +244,64 @@ export const agentApi = {
 // 6. RAG KNOWLEDGE & OKF POLICIES APIs
 // ==========================================
 export const ragApi = {
-  getSources: async () => {
-    const res = await axiosInstance.get(API_PATHS.RAG.SOURCES);
+  getSources: async (projectId) => {
+    const res = await axiosInstance.get(API_PATHS.RAG.SOURCES, {
+      params: projectId ? { projectId } : {},
+    });
     return res.data;
   },
 
-  queryVector: async (query, threshold) => {
+  queryVector: async (query, threshold, limit, projectId) => {
     const res = await axiosInstance.post(API_PATHS.RAG.QUERY, {
       query,
       threshold,
+      limit,
+      projectId,
+    });
+    return res.data;
+  },
+
+  reindex: async (projectId, files) => {
+    const res = await axiosInstance.post(API_PATHS.RAG.REINDEX, { projectId, files });
+    return res.data;
+  },
+
+  indexFile: async ({ projectId, filePath, content, language }) => {
+    const res = await axiosInstance.post(API_PATHS.RAG.INDEX_FILE, {
+      projectId,
+      filePath,
+      content,
+      language,
     });
     return res.data;
   },
 };
 
 export const okfApi = {
-  getPolicies: async () => {
-    const res = await axiosInstance.get(API_PATHS.OKF.POLICIES);
+  getPolicies: async (projectId) => {
+    const res = await axiosInstance.get(API_PATHS.OKF.POLICIES, {
+      params: projectId ? { projectId } : {},
+    });
+    return res.data;
+  },
+
+  createPolicy: async (data) => {
+    const res = await axiosInstance.post(API_PATHS.OKF.CREATE, data);
+    return res.data;
+  },
+
+  applyBaseline: async (projectId) => {
+    const res = await axiosInstance.post(API_PATHS.OKF.BASELINE, { projectId });
     return res.data;
   },
 
   togglePolicy: async (policyId) => {
     const res = await axiosInstance.patch(API_PATHS.OKF.TOGGLE(policyId));
+    return res.data;
+  },
+
+  deletePolicy: async (policyId) => {
+    const res = await axiosInstance.delete(API_PATHS.OKF.DELETE(policyId));
     return res.data;
   },
 };
@@ -214,3 +320,30 @@ export const telemetryApi = {
     return res.data;
   },
 };
+
+
+// ==========================================
+// 8. NOTIFICATIONS APIs
+// ==========================================
+export const notificationApi = {
+  getAll: async () => {
+    const res = await axiosInstance.get(API_PATHS.NOTIFICATIONS.GET_ALL);
+    return res.data;
+  },
+
+  markAllRead: async () => {
+    const res = await axiosInstance.patch(API_PATHS.NOTIFICATIONS.MARK_ALL_READ);
+    return res.data;
+  },
+
+  markRead: async (id) => {
+    const res = await axiosInstance.patch(API_PATHS.NOTIFICATIONS.MARK_READ(id));
+    return res.data;
+  },
+
+  delete: async (id) => {
+    const res = await axiosInstance.delete(API_PATHS.NOTIFICATIONS.DELETE(id));
+    return res.data;
+  },
+};
+
