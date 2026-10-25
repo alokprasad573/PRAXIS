@@ -48,6 +48,8 @@ const formatMembers = (workspace) => {
   });
 };
 
+exports.formatMembers = formatMembers;
+
 // 1. GET CURRENT WORKSPACE DETAILS & MEMBERS
 exports.getCurrentWorkspace = async (req, res) => {
   try {

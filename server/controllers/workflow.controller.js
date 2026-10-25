@@ -3,149 +3,10 @@ const WorkflowRun = require("../models/workflowrun.models");
 const Project = require("../models/project.models");
 const ApprovalGate = require("../models/approvalGate.models");
 const Notification = require("../models/notifications.models");
-
-// Asynchronous Multi-Agent Pipeline Runner
-const runPipelineAsync = async ({
-  workflowId,
-  userId,
-  approvalPolicy,
-  project,
-  branch,
-  customId,
-  name,
-}) => {
-  try {
-    // Stage 1: Code Analysis completes -> 50% (after 3.5s)
-    await new Promise((resolve) => setTimeout(resolve, 3500));
-    let wf = await Workflow.findById(workflowId);
-    if (!wf || wf.status === "failed" || wf.status === "cancelled") return;
-
-    wf.progress = 50;
-    wf.duration = "24s";
-    if (wf.metrics) wf.metrics.tokensUsed = (wf.metrics.tokensUsed || 0) + 2840;
-    if (wf.agentPipeline && wf.agentPipeline.length > 1) {
-      wf.agentPipeline[0].status = "completed";
-      wf.agentPipeline[0].tokens = 2840;
-      wf.agentPipeline[0].output = "AST verified. 0 syntax or type violations found.";
-      wf.agentPipeline[1].status = "running";
-      wf.agentPipeline[1].startedAt = new Date();
-      wf.agentPipeline[1].output = "Synthesizing test suites and assertions...";
-    }
-    await wf.save();
-
-    await WorkflowRun.create({
-      runId: `run-${Math.floor(1000 + Math.random() * 9000)}`,
-      workflow: workflowId,
-      agent: "Unit Test Agent",
-      status: "Running",
-      currentStep: "Synthesizing unit test suites and evaluating mock coverage",
-      duration: "24s",
-      tokens: 2840,
-      retries: 0,
-      trigger: "Pipeline Step 2",
-    });
-
-    // Stage 2: Unit Test completes -> 75% (after 3.5s)
-    await new Promise((resolve) => setTimeout(resolve, 3500));
-    wf = await Workflow.findById(workflowId);
-    if (!wf || wf.status === "failed" || wf.status === "cancelled") return;
-
-    wf.progress = 75;
-    wf.duration = "45s";
-    if (wf.metrics) wf.metrics.tokensUsed = (wf.metrics.tokensUsed || 0) + 3250;
-    if (wf.agentPipeline && wf.agentPipeline.length > 2) {
-      wf.agentPipeline[1].status = "completed";
-      wf.agentPipeline[1].tokens = 3250;
-      wf.agentPipeline[1].output = "Coverage raised from 48% to 74%. 41/43 test suites passing.";
-      wf.agentPipeline[2].status = "running";
-      wf.agentPipeline[2].startedAt = new Date();
-      wf.agentPipeline[2].output = "Scanning SAST rules & dependency CVEs...";
-    }
-    await wf.save();
-
-    await WorkflowRun.create({
-      runId: `run-${Math.floor(1000 + Math.random() * 9000)}`,
-      workflow: workflowId,
-      agent: "Security Auditor Agent",
-      status: "Running",
-      currentStep: "Scanning SAST rules and dependency vulnerabilities",
-      duration: "45s",
-      tokens: 3250,
-      retries: 0,
-      trigger: "Pipeline Step 3",
-    });
-
-    // Stage 3: Security Auditor completes -> 80% (after 3.5s)
-    await new Promise((resolve) => setTimeout(resolve, 3500));
-    wf = await Workflow.findById(workflowId);
-    if (!wf || wf.status === "failed" || wf.status === "cancelled") return;
-
-    if (wf.agentPipeline && wf.agentPipeline.length > 2) {
-      wf.agentPipeline[2].status = "completed";
-      wf.agentPipeline[2].output = "0 high-risk CVEs detected. Code passed OKF security guardrails.";
-    }
-
-    // Stage 4: Check if Human-in-the-Loop Approval Gate is required
-    if (approvalPolicy !== "none") {
-      wf.status = "waiting";
-      wf.progress = 80;
-      wf.duration = "1m 12s";
-      if (wf.agentPipeline && wf.agentPipeline.length > 3) {
-        wf.agentPipeline[3].status = "waiting";
-        wf.agentPipeline[3].output = "Paused at Human Authorization Gate: Awaiting approval.";
-      }
-      await wf.save();
-
-      const apprId = `appr-${Math.floor(100 + Math.random() * 900)}`;
-      await ApprovalGate.create({
-        approvalId: apprId,
-        workflow: workflowId,
-        project: project._id,
-        branch: branch || "main",
-        requestedBy: "DevOps Deployer Agent",
-        action: `Deploy ${project.name} to Staging Cluster`,
-        risk: "high",
-        reason: "Autonomous pipeline reached container promotion stage",
-        impact: "Modifies live cluster routing and spins up new container replica",
-        affectedFiles: ["kubernetes/deployment.yaml", "Dockerfile", "package.json"],
-        status: "pending",
-      });
-
-      // Real Notification: Pending Approval Gate
-      await Notification.create({
-        user: userId,
-        title: `APPROVAL GATE: Deploy ${project.name} (${apprId})`,
-        description: `Human authorization required before triggering deployment on branch '${branch}'.`,
-        category: "Approvals",
-        type: "approval",
-        unread: true,
-      });
-    } else {
-      // Auto Complete Workflow to 100%
-      wf.status = "completed";
-      wf.progress = 100;
-      wf.duration = "1m 30s";
-      wf.completedAt = new Date();
-      if (wf.agentPipeline && wf.agentPipeline.length > 3) {
-        wf.agentPipeline[3].status = "completed";
-        wf.agentPipeline[3].output = "Container image built and deployed successfully.";
-      }
-      await wf.save();
-
-      // Real Notification: Workflow Completed
-      await Notification.create({
-        user: userId,
-        title: `WORKFLOW COMPLETED: ${customId} ${name}`,
-        description: `All autonomous agent pipelines completed successfully on ${project.name}.`,
-        category: "Workflows",
-        type: "success",
-        unread: true,
-      });
-    }
-  } catch (err) {
-    console.error("Pipeline runner execution error:", err);
-  }
-};
+const {
+  executeRealPipeline,
+  cancelWorkflow: cancelWorkflowService,
+} = require("../services/agentOrchestrator.service");
 
 // 1. GET ALL WORKFLOWS (Filtered by active workspace and project)
 exports.getWorkflows = async (req, res) => {
@@ -200,32 +61,40 @@ exports.launchWorkflow = async (req, res) => {
     const count = await Workflow.countDocuments();
     const customId = `WF-${2048 + count}`;
 
-    // Standard Multi-Agent Pipeline for PRAXIS
+    // Standard Multi-Agent Pipeline for PRAXIS with DAG dependencies
     const agentPipeline = [
       {
+        id: "stage-code-analysis",
         name: "Code Analysis Agent",
         status: "running",
+        dependencies: [],
         startedAt: new Date(),
         tokens: 1250,
         output: "Scanning AST and module dependencies...",
       },
       {
+        id: "stage-unit-test",
         name: "Unit Test Agent",
-        status: executionMode === "parallel" ? "running" : "waiting",
+        status: executionMode === "parallel" ? "running" : "pending",
+        dependencies: executionMode === "parallel" ? [] : ["Code Analysis Agent"],
         startedAt: executionMode === "parallel" ? new Date() : null,
         tokens: 0,
         output: "Waiting for AST verification...",
       },
       {
+        id: "stage-security-auditor",
         name: "Security Auditor Agent",
-        status: "waiting",
-        startedAt: null,
+        status: executionMode === "parallel" ? "running" : "pending",
+        dependencies: executionMode === "parallel" ? [] : ["Unit Test Agent"],
+        startedAt: executionMode === "parallel" ? new Date() : null,
         tokens: 0,
         output: "Queued for SAST vulnerability check...",
       },
       {
+        id: "stage-devops-deployer",
         name: "DevOps Deployer Agent",
-        status: "waiting",
+        status: "pending",
+        dependencies: ["Code Analysis Agent", "Unit Test Agent", "Security Auditor Agent"],
         startedAt: null,
         tokens: 0,
         output: "Waiting for human approval gate...",
@@ -279,8 +148,8 @@ exports.launchWorkflow = async (req, res) => {
       });
     }
 
-    // Launch Asynchronous Pipeline Runner (Progresses from 25% -> 50% -> 75% -> 80% / 100%)
-    runPipelineAsync({
+    // Launch Real Autonomous Pipeline Runner
+    executeRealPipeline({
       workflowId: workflow._id,
       userId: req.userId,
       approvalPolicy,
@@ -333,15 +202,15 @@ exports.cancelWorkflow = async (req, res) => {
       return res.status(404).json({ success: false, message: "Workflow not found." });
     }
 
-    workflow.status = "failed";
-    workflow.progress = 100;
-    workflow.completedAt = new Date();
-    await workflow.save();
+    const cancelledWf = await cancelWorkflowService(
+      workflow._id,
+      req.body?.reason || "Cancelled by user"
+    );
 
     res.status(200).json({
       success: true,
       message: `Workflow ${workflow.customId} cancelled.`,
-      data: workflow,
+      data: cancelledWf || workflow,
     });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });

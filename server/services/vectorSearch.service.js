@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 const VectorEmbedding = require("../models/vectorEmbedding.models");
+const OkfPolicy = require("../models/okfPolicy.models");
 const { getEmbedding } = require("./embedding.service");
 
 /**
@@ -30,7 +31,7 @@ async function searchSimilarChunks({
   query,
   workspaceId = null,
   projectId = null,
-  category = null, // "code" | "okf_policy" | "docs"
+  category = null, // "code" | "docs"
   limit = 5,
   minScore = 0.05,
 }) {
@@ -102,14 +103,15 @@ async function getUnifiedAgentContext({
     minScore: 0.6,
   });
 
-  // Retrieve 20% applicable OKF governance policies
-  const okfPolicies = await searchSimilarChunks({
-    query: taskDescription,
-    workspaceId,
-    category: "okf_policy",
-    limit: policyLimit,
-    minScore: 0.5,
-  });
+  // Retrieve 20% applicable OKF governance policies directly from OkfPolicy
+  const okfFilter = { status: "enabled" };
+  if (projectId) {
+    okfFilter.project = projectId;
+  } else if (workspaceId) {
+    okfFilter.workspace = workspaceId;
+  }
+
+  const okfPolicies = await OkfPolicy.find(okfFilter).limit(policyLimit || 5).lean();
 
   // Format into prompt-ready context structure
   const formattedCodeContext = codeChunks
@@ -122,7 +124,7 @@ async function getUnifiedAgentContext({
   const formattedOkfContext = okfPolicies
     .map(
       (p, i) =>
-        `### [OKF Policy Guardrail ${i + 1}] Policy: ${p.source} (${p.metadata?.riskLevel || "medium"} risk)\nRule: ${p.content}`
+        `### [OKF Policy Guardrail ${i + 1}] Policy: ${p.policyId} - ${p.name} (${p.risk || "medium"} risk | ${p.category})\nRule:\n${p.rule}\nDescription: ${p.description || "Deterministic guardrail constraint."}`
     )
     .join("\n\n");
 

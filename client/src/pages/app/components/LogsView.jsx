@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Search } from "lucide-react";
 
-const LogsView = ({ logs = [], onToast }) => {
+const LogsView = ({ logs = [], executionLogs = [], onToast }) => {
   const [currentViewMode, setCurrentViewMode] = useState("table");
   const [isLiveMode, setIsLiveMode] = useState(false);
   const [search, setSearch] = useState("");
@@ -83,7 +83,8 @@ const LogsView = ({ logs = [], onToast }) => {
     },
   ];
 
-  const displayLogs = logs.length > 0 ? logs : defaultLogs;
+  const availableLogs = logs.length > 0 ? logs : executionLogs;
+  const displayLogs = availableLogs.length > 0 ? availableLogs : defaultLogs;
 
   const filteredLogs = displayLogs.filter((l) => {
     const matchesSearch =

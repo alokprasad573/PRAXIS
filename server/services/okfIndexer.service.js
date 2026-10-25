@@ -1,6 +1,4 @@
 const OkfPolicy = require("../models/okfPolicy.models");
-const VectorEmbedding = require("../models/vectorEmbedding.models");
-const { getEmbedding } = require("./embedding.service");
 
 const BASELINE_OKF_POLICIES = [
   {
@@ -71,7 +69,7 @@ if (forbidden.some(op => sql.toUpperCase().includes(op))) {
 
 /**
  * Initialize baseline OKF Policies for a specific repository / project
- * Ensures each repository has its own isolated policies and vector index.
+ * Ensures each repository has its own isolated policies.
  */
 async function seedAndIndexOkfPolicies(workspaceId = null, projectId = null) {
   try {
@@ -84,65 +82,24 @@ async function seedAndIndexOkfPolicies(workspaceId = null, projectId = null) {
     // If policies don't exist for this project/workspace, initialize baseline rules
     if (existingPolicies.length === 0) {
       for (const policy of BASELINE_OKF_POLICIES) {
-        const doc = await OkfPolicy.create({
+        await OkfPolicy.create({
           ...policy,
           workspace: workspaceId,
           project: projectId,
           triggers: 0, // Real zero trigger count
         });
-
-        // Index policy vector for this specific project
-        const textToIndex = `Policy: ${policy.policyId} - ${policy.name}\nCategory: ${policy.category}\nRisk: ${policy.risk}\nDescription: ${policy.description}\nDeterministic Rule:\n${policy.rule}`;
-        const embedding = await getEmbedding(textToIndex);
-
-        await VectorEmbedding.create({
-          workspace: workspaceId,
-          project: projectId,
-          category: "okf_policy",
-          source: policy.policyId,
-          title: policy.name,
-          content: textToIndex,
-          metadata: {
-            policyId: policy.policyId,
-            riskLevel: policy.risk,
-            astType: "guardrail_policy",
-          },
-          embedding,
-          tokenCount: Math.ceil(textToIndex.length / 4),
-        });
       }
     }
   } catch (err) {
-    console.error("OKF vector indexing error:", err);
+    console.error("OKF baseline initialization error:", err);
   }
 }
 
 /**
- * Index a single newly added policy into VectorEmbedding
+ * No-op helper preserved for backward compatibility
  */
 async function indexSinglePolicy(policyDoc) {
-  try {
-    const textToIndex = `Policy: ${policyDoc.policyId} - ${policyDoc.name}\nCategory: ${policyDoc.category}\nRisk: ${policyDoc.risk}\nDescription: ${policyDoc.description}\nDeterministic Rule:\n${policyDoc.rule}`;
-    const embedding = await getEmbedding(textToIndex);
-
-    await VectorEmbedding.create({
-      workspace: policyDoc.workspace,
-      project: policyDoc.project,
-      category: "okf_policy",
-      source: policyDoc.policyId,
-      title: policyDoc.name,
-      content: textToIndex,
-      metadata: {
-        policyId: policyDoc.policyId,
-        riskLevel: policyDoc.risk,
-        astType: "guardrail_policy",
-      },
-      embedding,
-      tokenCount: Math.ceil(textToIndex.length / 4),
-    });
-  } catch (err) {
-    console.error("Error indexing single policy vector:", err);
-  }
+  return true;
 }
 
 module.exports = {

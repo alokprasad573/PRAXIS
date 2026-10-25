@@ -14,9 +14,7 @@ import {
   CheckCircle,
   FileText,
   Check,
-  Shield,
   Loader,
-  Eye,
   Flag,
   Play,
   FolderOpen,
@@ -33,6 +31,7 @@ const WorkflowDetailView = ({
   workflows = [],
   onNavigate,
   onToast,
+  onCancelWorkflow,
 }) => {
   const [activeTab, setActiveTab] = useState("execution");
 
@@ -63,6 +62,15 @@ const WorkflowDetailView = ({
 
   const isRunning = wf.status === "running" || wf.status === "in_progress";
 
+  const defaultPipeline = [
+    { name: "Code Analysis Agent", status: "completed", tokens: 1250, output: "AST structure analyzed, dependencies resolved." },
+    { name: "Unit Test Agent", status: "completed", tokens: 2800, output: "Generated unit test suites against OKF coverage targets." },
+    { name: "Security Auditor Agent", status: "completed", tokens: 1950, output: "SAST secrets and OKF guardrails verified." },
+    { name: "DevOps Deployer Agent", status: "waiting", tokens: 850, output: "Awaiting human authorization gate before deployment." },
+  ];
+
+  const pipeline = wf.agentPipeline && wf.agentPipeline.length > 0 ? wf.agentPipeline : defaultPipeline;
+
   const tabs = [
     { id: "overview", label: "Overview", icon: LayoutDashboard },
     { id: "execution", label: "Execution Graph", icon: GitMerge },
@@ -73,6 +81,15 @@ const WorkflowDetailView = ({
     { id: "approvals", label: "Approvals", icon: CheckCircle },
     { id: "report", label: "Engineering Report", icon: FileText },
   ];
+
+  const handleAbort = async () => {
+    const targetId = wf._id || wfCustomId;
+    if (onCancelWorkflow) {
+      await onCancelWorkflow(targetId);
+    } else if (onToast) {
+      onToast("Workflow execution halted", "warning");
+    }
+  };
 
   const getStatusBadge = (status) => {
     switch (status) {
@@ -89,11 +106,30 @@ const WorkflowDetailView = ({
             Completed
           </span>
         );
+      case "waiting_for_approval":
       case "blocked":
       case "waiting":
         return (
           <span className="px-2 py-0.5 rounded text-[10px] bg-amber-500/15 text-amber-400 border border-amber-500/30 font-mono font-bold">
             Blocked Gate
+          </span>
+        );
+      case "cancelled":
+        return (
+          <span className="px-2 py-0.5 rounded text-[10px] bg-rose-500/15 text-rose-400 border border-rose-500/30 font-mono font-bold">
+            Cancelled
+          </span>
+        );
+      case "failed":
+        return (
+          <span className="px-2 py-0.5 rounded text-[10px] bg-rose-500/15 text-rose-400 border border-rose-500/30 font-mono font-bold">
+            Failed
+          </span>
+        );
+      case "queued":
+        return (
+          <span className="px-2 py-0.5 rounded text-[10px] bg-blue-500/15 text-blue-400 border border-blue-500/30 font-mono font-bold">
+            Queued
           </span>
         );
       default:
@@ -167,9 +203,7 @@ const WorkflowDetailView = ({
             {isRunning && (
               <button
                 type="button"
-                onClick={() =>
-                  onToast && onToast("Workflow execution halted", "warning")
-                }
+                onClick={handleAbort}
                 className="bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 px-3 py-1.5 text-xs font-mono rounded-lg transition-colors border border-rose-500/25 flex items-center gap-1.5 cursor-pointer"
               >
                 <XCircle className="w-3.5 h-3.5" /> Abort
@@ -267,62 +301,82 @@ const WorkflowDetailView = ({
                 Orchestration Phase Progression
               </h3>
               <div className="flex flex-col space-y-4 relative before:absolute before:inset-0 before:ml-5 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-[#201d1a]">
-                <div className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group">
-                  <div className="flex items-center justify-center w-10 h-10 rounded-full border-4 border-dark-card bg-emerald-500 text-white shadow shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 z-10">
-                    <Check className="w-4 h-4" />
-                  </div>
-                  <div className="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] bg-[#14151b] p-4 rounded-xl border border-[#282420]">
-                    <div className="flex items-center justify-between mb-1 font-mono">
-                      <h4 className="font-bold text-cream-100 text-xs">
-                        Orchestrator Decomposition
-                      </h4>
-                      <span className="text-[10px] text-emerald-400">
-                        0.5s • Done
-                      </span>
+                {pipeline.map((p, idx) => {
+                  const isDone = p.status === "completed";
+                  const isRunning = p.status === "running";
+                  const isWaiting = p.status === "waiting";
+                  return (
+                    <div
+                      key={p.name || idx}
+                      className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group"
+                    >
+                      <div
+                        className={`flex items-center justify-center w-10 h-10 rounded-full border-4 border-dark-card shadow shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 z-10 ${
+                          isDone
+                            ? "bg-emerald-500 text-white"
+                            : isWaiting
+                            ? "bg-amber-500 text-black font-bold shadow-[0_0_12px_rgba(245,158,11,0.6)]"
+                            : isRunning
+                            ? "bg-orange-500 text-white animate-pulse shadow-[0_0_12px_rgba(249,115,22,0.8)]"
+                            : "bg-[#181920] text-[#8a7f70]"
+                        }`}
+                      >
+                        {isDone ? (
+                          <Check className="w-4 h-4" />
+                        ) : isWaiting ? (
+                          <ShieldAlert className="w-4 h-4" />
+                        ) : isRunning ? (
+                          <Bot className="w-4 h-4" />
+                        ) : (
+                          <Clock className="w-4 h-4" />
+                        )}
+                      </div>
+                      <div
+                        className={`w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] p-4 rounded-xl border ${
+                          isDone
+                            ? "bg-[#14151b] border-[#282420]"
+                            : isWaiting
+                            ? "bg-amber-500/10 border-amber-500/40"
+                            : isRunning
+                            ? "bg-orange-500/10 border-orange-500/30"
+                            : "bg-[#121319] border-[#201d1a]"
+                        }`}
+                      >
+                        <div className="flex items-center justify-between mb-1 font-mono">
+                          <h4
+                            className={`font-bold text-xs ${
+                              isDone
+                                ? "text-cream-100"
+                                : isWaiting
+                                ? "text-amber-300"
+                                : isRunning
+                                ? "text-orange-300"
+                                : "text-[#8a7f70]"
+                            }`}
+                          >
+                            {p.name}
+                          </h4>
+                          <span
+                            className={`text-[10px] font-mono ${
+                              isDone
+                                ? "text-emerald-400 font-bold"
+                                : isWaiting
+                                ? "text-amber-400 font-bold"
+                                : isRunning
+                                ? "text-orange-400 font-bold animate-pulse"
+                                : "text-[#6b645b]"
+                            }`}
+                          >
+                            {isDone ? "Done" : isWaiting ? "Human Gate" : isRunning ? "Running..." : "Queued"}
+                          </span>
+                        </div>
+                        <p className="text-xs text-[#b8ab97] font-sans leading-relaxed">
+                          {p.output || "Autonomous agent awaiting previous stage completion."}
+                        </p>
+                      </div>
                     </div>
-                    <p className="text-xs text-[#b8ab97] font-sans">
-                      Formulated plan with 4 concurrent agent pipelines.
-                    </p>
-                  </div>
-                </div>
-
-                <div className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group">
-                  <div className="flex items-center justify-center w-10 h-10 rounded-full border-4 border-dark-card bg-orange-500 text-white shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 z-10 animate-pulse shadow-[0_0_12px_rgba(249,115,22,0.8)]">
-                    <Bot className="w-4 h-4" />
-                  </div>
-                  <div className="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] bg-orange-500/10 p-4 rounded-xl border border-orange-500/30">
-                    <div className="flex items-center justify-between mb-1 font-mono">
-                      <h4 className="font-bold text-orange-300 text-xs">
-                        Unit Test Agent (Iterative Loop)
-                      </h4>
-                      <span className="text-[10px] text-orange-400 animate-pulse font-bold">
-                        Loop 2 Active...
-                      </span>
-                    </div>
-                    <p className="text-xs text-[#d6c5a8] font-sans">
-                      Coverage raised from 48% → 74%. Generating remaining 2
-                      edge case suites.
-                    </p>
-                  </div>
-                </div>
-
-                <div className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group">
-                  <div className="flex items-center justify-center w-10 h-10 rounded-full border-4 border-dark-card bg-[#181920] text-[#8a7f70] shadow shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 z-10">
-                    <Clock className="w-4 h-4" />
-                  </div>
-                  <div className="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] bg-[#121319] p-4 rounded-xl border border-[#201d1a]">
-                    <div className="flex items-center justify-between mb-1 font-mono">
-                      <h4 className="font-bold text-[#8a7f70] text-xs">
-                        Review & Verification
-                      </h4>
-                      <span className="text-[10px] text-[#6b645b]">Queued</span>
-                    </div>
-                    <p className="text-xs text-[#78716c] font-sans">
-                      Awaiting Unit Test coverage threshold confirmation (≥
-                      80%).
-                    </p>
-                  </div>
-                </div>
+                  );
+                })}
               </div>
             </div>
           </div>
@@ -382,85 +436,117 @@ const WorkflowDetailView = ({
               </svg>
 
               {/* Node: Start */}
-              <div className="w-30 bg-[#14151b] border border-[#282420] rounded-xl p-3 text-center z-10 flex flex-col items-center shadow-lg">
+              <div className="w-28 bg-[#14151b] border border-[#282420] rounded-xl p-3 text-center z-10 flex flex-col items-center shadow-lg shrink-0">
                 <div className="w-8 h-8 rounded-lg bg-orange-500/10 flex items-center justify-center mb-1 text-orange-400">
                   <Play className="w-4 h-4 fill-orange-500/30" />
                 </div>
                 <span className="text-xs font-mono font-bold text-cream-100">
-                  Start
+                  Task Start
+                </span>
+                <span className="text-[10px] font-mono text-[#8a7f70]">
+                  RAG + OKF
                 </span>
               </div>
 
-              {/* Node: Orchestrator (Completed) */}
-              <div className="w-40 bg-emerald-500/10 border border-emerald-500/40 rounded-xl p-3 text-center z-10 flex flex-col items-center shadow-lg relative">
-                <div className="absolute -top-2 -right-2 w-5 h-5 bg-emerald-500 rounded-full flex items-center justify-center text-white border-2 border-dark-card">
-                  <Check className="w-3 h-3" />
-                </div>
-                <div className="w-8 h-8 rounded-lg bg-emerald-500/20 flex items-center justify-center mb-1 text-emerald-400">
-                  <GitBranch className="w-4 h-4" />
-                </div>
-                <span className="text-xs font-mono font-bold text-emerald-300">
-                  Orchestrator
-                </span>
-                <span className="text-[10px] font-mono text-emerald-400 mt-0.5">
-                  Plan Synthesized
-                </span>
-              </div>
-
-              {/* Parallel Column */}
-              <div className="flex flex-col gap-12 z-10">
-                {/* Node: Security Agent (Completed) */}
-                <div className="w-40 bg-emerald-500/10 border border-emerald-500/40 rounded-xl p-3 text-center shadow-lg flex flex-col items-center relative">
-                  <div className="absolute -top-2 -right-2 w-5 h-5 bg-emerald-500 rounded-full flex items-center justify-center text-white border-2 border-dark-card">
-                    <Check className="w-3 h-3" />
+              {/* Dynamic Agent Nodes */}
+              {pipeline.map((p, idx) => {
+                const isDone = p.status === "completed";
+                const isRunning = p.status === "running";
+                const isWaiting = p.status === "waiting";
+                return (
+                  <div
+                    key={p.name || idx}
+                    className={`w-44 rounded-xl p-3 text-center shadow-lg flex flex-col items-center relative z-10 border transition-all shrink-0 ${
+                      isDone
+                        ? "bg-emerald-500/10 border-emerald-500/40"
+                        : isWaiting
+                        ? "bg-amber-500/15 border-2 border-amber-500 shadow-[0_0_20px_rgba(245,158,11,0.35)]"
+                        : isRunning
+                        ? "bg-orange-500/15 border-2 border-orange-500 shadow-[0_0_20px_rgba(249,115,22,0.35)]"
+                        : "bg-[#14151b] border-[#282420] opacity-50"
+                    }`}
+                  >
+                    <div
+                      className={`absolute -top-2 -right-2 w-5 h-5 rounded-full flex items-center justify-center text-white border-2 border-dark-card ${
+                        isDone
+                          ? "bg-emerald-500"
+                          : isWaiting
+                          ? "bg-amber-500 text-black font-bold"
+                          : isRunning
+                          ? "bg-orange-500"
+                          : "bg-[#282420]"
+                      }`}
+                    >
+                      {isDone ? (
+                        <Check className="w-3 h-3" />
+                      ) : isWaiting ? (
+                        <ShieldAlert className="w-3 h-3" />
+                      ) : isRunning ? (
+                        <Loader className="w-3 h-3 animate-spin" />
+                      ) : (
+                        <Clock className="w-3 h-3 text-[#8a7f70]" />
+                      )}
+                    </div>
+                    <div
+                      className={`w-8 h-8 rounded-lg flex items-center justify-center mb-1 ${
+                        isDone
+                          ? "bg-emerald-500/20 text-emerald-400"
+                          : isWaiting
+                          ? "bg-amber-500/20 text-amber-400"
+                          : isRunning
+                          ? "bg-orange-500/20 text-orange-400"
+                          : "bg-[#1c1d25] text-[#8a7f70]"
+                      }`}
+                    >
+                      <Bot className="w-4 h-4" />
+                    </div>
+                    <span
+                      className={`text-xs font-mono font-bold truncate max-w-full ${
+                        isDone
+                          ? "text-emerald-300"
+                          : isWaiting
+                          ? "text-amber-300"
+                          : isRunning
+                          ? "text-orange-300"
+                          : "text-[#8a7f70]"
+                      }`}
+                    >
+                      {p.name}
+                    </span>
+                    <span
+                      className={`text-[10px] font-mono mt-0.5 truncate max-w-full ${
+                        isDone
+                          ? "text-emerald-400"
+                          : isWaiting
+                          ? "text-amber-400 font-bold"
+                          : isRunning
+                          ? "text-orange-400 font-bold animate-pulse"
+                          : "text-[#6b645b]"
+                      }`}
+                    >
+                      {isDone ? "Completed" : isWaiting ? "Human Gate" : isRunning ? "Running..." : "Queued"}
+                    </span>
                   </div>
-                  <div className="w-8 h-8 rounded-lg bg-emerald-500/20 flex items-center justify-center mb-1 text-emerald-400">
-                    <Shield className="w-4 h-4" />
-                  </div>
-                  <span className="text-xs font-mono font-bold text-emerald-300">
-                    Security Agent
-                  </span>
-                  <span className="text-[10px] font-mono text-emerald-400 mt-0.5">
-                    0 Vulnerability
-                  </span>
-                </div>
+                );
+              })}
 
-                {/* Node: Unit Test Agent (Running) */}
-                <div className="w-40 bg-orange-500/15 border-2 border-orange-500 rounded-xl p-3 text-center shadow-[0_0_20px_rgba(249,115,22,0.35)] flex flex-col items-center relative">
-                  <div className="absolute -top-2 -right-2 w-5 h-5 bg-orange-500 rounded-full flex items-center justify-center text-white border-2 border-dark-card">
-                    <Loader className="w-3 h-3 animate-spin" />
-                  </div>
-                  <div className="w-8 h-8 rounded-lg bg-orange-500/20 flex items-center justify-center mb-1 text-orange-400">
-                    <Bot className="w-4 h-4" />
-                  </div>
-                  <span className="text-xs font-mono font-bold text-orange-300">
-                    Unit Test Agent
-                  </span>
-                  <span className="text-[10px] font-mono text-orange-400 mt-0.5 animate-pulse">
-                    Loop 2 (74%)
-                  </span>
-                </div>
-              </div>
-
-              {/* Node: Review (Waiting) */}
-              <div className="w-40 bg-[#14151b] border border-[#282420] rounded-xl p-3 text-center z-10 flex flex-col items-center shadow-lg opacity-60">
-                <div className="w-8 h-8 rounded-lg bg-[#1c1d25] flex items-center justify-center mb-1 text-[#8a7f70]">
-                  <Eye className="w-4 h-4" />
-                </div>
-                <span className="text-xs font-mono text-[#d6c5a8]">
-                  Review Agent
-                </span>
-                <span className="text-[10px] font-mono text-[#6b645b]">
-                  Waiting
-                </span>
-              </div>
-
-              {/* Node: Result (Waiting) */}
-              <div className="w-30 bg-[#14151b] border border-[#282420] rounded-xl p-3 text-center z-10 flex flex-col items-center shadow-lg opacity-40">
-                <div className="w-8 h-8 rounded-lg bg-[#1c1d25] flex items-center justify-center mb-1 text-[#8a7f70]">
+              {/* Node: Complete / Result */}
+              <div
+                className={`w-28 rounded-xl p-3 text-center z-10 flex flex-col items-center shadow-lg border shrink-0 ${
+                  wf.status === "completed"
+                    ? "bg-emerald-500/10 border-emerald-500/40 text-emerald-300"
+                    : wf.status === "waiting"
+                    ? "bg-amber-500/10 border-amber-500/40 text-amber-300"
+                    : "bg-[#14151b] border-[#282420] opacity-40 text-[#8a7f70]"
+                }`}
+              >
+                <div className="w-8 h-8 rounded-lg bg-[#1c1d25] flex items-center justify-center mb-1 text-orange-400">
                   <Flag className="w-4 h-4" />
                 </div>
-                <span className="text-xs font-mono text-[#8a7f70]">Result</span>
+                <span className="text-xs font-mono font-bold">
+                  {wf.status === "completed" ? "Done" : wf.status === "waiting" ? "Gate" : "Pending"}
+                </span>
+                <span className="text-[10px] font-mono">{wf.progress || 0}%</span>
               </div>
             </div>
           </div>
@@ -483,60 +569,66 @@ const WorkflowDetailView = ({
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#201d1a] text-cream-100 font-mono">
-                <tr>
-                  <td className="px-4 py-3 font-bold text-white flex items-center gap-2">
-                    <Bot className="w-4 h-4 text-emerald-400" /> Orchestrator
-                  </td>
-                  <td className="px-4 py-3 text-xs text-[#a89f91]">
-                    praxis-orchestrator
-                  </td>
-                  <td className="px-4 py-3">
-                    <span className="text-emerald-400 text-xs flex items-center gap-1">
-                      <CheckCircle className="w-3 h-3" /> Completed
-                    </span>
-                  </td>
-                  <td className="px-4 py-3 text-[#a89f91]">0.5s</td>
-                  <td className="px-4 py-3 text-[#a89f91]">1,240</td>
-                  <td className="px-4 py-3 text-[#d6c5a8] truncate max-w-xs">
-                    Generated execution plan with 4 sub-tasks
-                  </td>
-                </tr>
-                <tr className="bg-orange-500/5">
-                  <td className="px-4 py-3 font-bold text-orange-300 flex items-center gap-2">
-                    <Bot className="w-4 h-4 text-orange-400" /> Unit Test Agent
-                  </td>
-                  <td className="px-4 py-3 text-xs text-[#a89f91]">
-                    test-generator
-                  </td>
-                  <td className="px-4 py-3">
-                    <span className="text-orange-400 text-xs flex items-center gap-1 font-bold">
-                      <Loader className="w-3 h-3 animate-spin" /> Loop 2 Running
-                    </span>
-                  </td>
-                  <td className="px-4 py-3 text-orange-300">8m 12s</td>
-                  <td className="px-4 py-3 text-orange-300">68,400</td>
-                  <td className="px-4 py-3 text-orange-200 truncate max-w-xs">
-                    41/43 passing, generating 2 remaining tests
-                  </td>
-                </tr>
-                <tr className="opacity-50">
-                  <td className="px-4 py-3 font-medium text-[#8a7f70] flex items-center gap-2">
-                    <Bot className="w-4 h-4" /> Review Agent
-                  </td>
-                  <td className="px-4 py-3 text-xs text-[#6b645b]">
-                    synthesis
-                  </td>
-                  <td className="px-4 py-3">
-                    <span className="text-[#8a7f70] text-xs flex items-center gap-1">
-                      <Clock className="w-3 h-3" /> Queued
-                    </span>
-                  </td>
-                  <td className="px-4 py-3 text-[#6b645b]">-</td>
-                  <td className="px-4 py-3 text-[#6b645b]">-</td>
-                  <td className="px-4 py-3 text-[#6b645b] truncate max-w-xs">
-                    Awaiting test loop completion
-                  </td>
-                </tr>
+                {pipeline.map((p, idx) => {
+                  const isDone = p.status === "completed";
+                  const isRunning = p.status === "running";
+                  const isWaiting = p.status === "waiting";
+                  return (
+                    <tr
+                      key={p.name || idx}
+                      className={isRunning ? "bg-orange-500/5" : isWaiting ? "bg-amber-500/5" : ""}
+                    >
+                      <td className="px-4 py-3 font-bold text-white flex items-center gap-2">
+                        <Bot
+                          className={`w-4 h-4 ${
+                            isDone
+                              ? "text-emerald-400"
+                              : isWaiting
+                              ? "text-amber-400"
+                              : isRunning
+                              ? "text-orange-400 animate-spin"
+                              : "text-[#8a7f70]"
+                          }`}
+                        />
+                        {p.name}
+                      </td>
+                      <td className="px-4 py-3 text-xs text-[#a89f91]">
+                        autonomous-agent
+                      </td>
+                      <td className="px-4 py-3">
+                        {isDone && (
+                          <span className="text-emerald-400 text-xs flex items-center gap-1 font-bold">
+                            <CheckCircle className="w-3 h-3" /> Completed
+                          </span>
+                        )}
+                        {isRunning && (
+                          <span className="text-orange-400 text-xs flex items-center gap-1 font-bold">
+                            <Loader className="w-3 h-3 animate-spin" /> Running
+                          </span>
+                        )}
+                        {isWaiting && (
+                          <span className="text-amber-400 text-xs flex items-center gap-1 font-bold">
+                            <Clock className="w-3 h-3" /> Human Gate
+                          </span>
+                        )}
+                        {!isDone && !isRunning && !isWaiting && (
+                          <span className="text-[#8a7f70] text-xs flex items-center gap-1">
+                            <Clock className="w-3 h-3" /> Queued
+                          </span>
+                        )}
+                      </td>
+                      <td className="px-4 py-3 text-[#a89f91]">
+                        {p.duration || (isDone ? "1.2s" : isRunning ? "Running" : "-")}
+                      </td>
+                      <td className="px-4 py-3 text-[#a89f91]">
+                        {p.tokens ? p.tokens.toLocaleString() : "-"}
+                      </td>
+                      <td className="px-4 py-3 text-[#d6c5a8] whitespace-normal">
+                        {p.output || "Autonomous worker awaiting instruction."}
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
@@ -701,73 +793,49 @@ const WorkflowDetailView = ({
         {/* LOGS TAB */}
         {activeTab === "logs" && (
           <div className="h-120 bg-dark-base border border-[#201d1a] rounded-xl p-5 font-mono text-xs overflow-y-auto custom-scrollbar shadow-xl animate-fadeInUp">
-            <div className="space-y-2">
+            <div className="space-y-3">
               <div className="text-[#8a7f70]">
-                [22:10:15]{" "}
-                <span className="text-orange-400 font-bold">
-                  [Orchestrator]
-                </span>{" "}
-                Initializing workflow WF-2048 in parallel mode...
+                <span className="text-orange-400 font-bold">[PRAXIS Engine]</span> Initializing workflow {wfCustomId} ({wf.name}) on branch &apos;{branchName}&apos;...
               </div>
               <div className="text-[#8a7f70]">
-                [22:10:15]{" "}
-                <span className="text-orange-400 font-bold">
-                  [Orchestrator]
-                </span>{" "}
-                Analyzing codebase AST: payments-api (Branch: main)
+                <span className="text-amber-400 font-bold">[Vector RAG]</span> Injected 80% code context chunks from Vector DB + 20% active OKF governance policies.
               </div>
-              <div className="text-[#8a7f70]">
-                [22:10:16]{" "}
-                <span className="text-orange-400 font-bold">
-                  [Orchestrator]
-                </span>{" "}
-                Decomposed into 4 agent subtasks with dependencies
-              </div>
-              <div className="text-[#8a7f70]">
-                [22:10:17]{" "}
-                <span className="text-amber-400 font-bold">
-                  [RAG Vector Engine]
-                </span>{" "}
-                Ingested 24 semantic pattern chunks (similarity score &gt; 0.88)
-              </div>
-              <div className="text-[#8a7f70]">
-                [22:10:18]{" "}
-                <span className="text-orange-300 font-bold">
-                  [Unit Test Agent]
-                </span>{" "}
-                Target: Increase coverage from 48% to 80%
-              </div>
-              <div className="text-[#8a7f70]">
-                [22:10:22]{" "}
-                <span className="text-emerald-400 font-bold">
-                  [Unit Test Agent]
-                </span>{" "}
-                Generated 43 test suites in Jest format
-              </div>
-              <div className="text-[#8a7f70]">
-                [22:10:25]{" "}
-                <span className="text-cream-100 font-bold">
-                  [Tool: Test Runner]
-                </span>{" "}
-                Executed{" "}
-                <code className="text-orange-300">npm test -- --coverage</code>{" "}
-                -&gt; 41 passed, 2 failed
-              </div>
-              <div className="text-[#8a7f70]">
-                [22:10:26]{" "}
-                <span className="text-orange-400 font-bold">
-                  [Unit Test Agent]
-                </span>{" "}
-                Evaluated failure logs, initiating autonomous fix loop (2/3)...
-              </div>
-              <div className="text-[#8a7f70] flex items-center gap-2">
-                [22:10:28]{" "}
-                <span className="text-orange-400 font-bold">
-                  [Unit Test Agent]
-                </span>{" "}
-                Regenerating mocked stripe dependencies...{" "}
-                <span className="w-1.5 h-1.5 bg-orange-400 rounded-full animate-pulse" />
-              </div>
+              {pipeline.map((p, idx) => (
+                <div key={p.name || idx} className="text-[#d6c5a8] border-l-2 border-[#201d1a] pl-3 py-1">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-orange-400 font-bold">[{p.name}]</span>
+                    <span className={`text-[10px] px-1.5 py-0.5 rounded font-bold ${
+                      p.status === "completed"
+                        ? "bg-emerald-500/20 text-emerald-400"
+                        : p.status === "waiting"
+                        ? "bg-amber-500/20 text-amber-400"
+                        : p.status === "running"
+                        ? "bg-orange-500/20 text-orange-400 animate-pulse"
+                        : "bg-[#181920] text-[#8a7f70]"
+                    }`}>
+                      {p.status?.toUpperCase() || "QUEUED"}
+                    </span>
+                    <span className="text-[10px] text-[#8a7f70]">
+                      {p.duration || "1.2s"} • {p.tokens ? `${p.tokens} tokens` : "0 tokens"}
+                    </span>
+                  </div>
+                  <p className="text-cream-100 text-xs font-sans leading-relaxed">
+                    {p.output || "Stage queued for execution."}
+                  </p>
+                </div>
+              ))}
+              {wf.status === "waiting" && (
+                <div className="p-3 bg-amber-500/10 border border-amber-500/30 rounded-lg text-amber-300 font-bold flex items-center gap-2">
+                  <ShieldAlert className="w-4 h-4 text-amber-400 shrink-0" />
+                  <span>Pipeline paused at Human Approval Gate. Awaiting security administrator authorization.</span>
+                </div>
+              )}
+              {wf.status === "completed" && (
+                <div className="p-3 bg-emerald-500/10 border border-emerald-500/30 rounded-lg text-emerald-300 font-bold flex items-center gap-2">
+                  <CheckCircle className="w-4 h-4 text-emerald-400 shrink-0" />
+                  <span>All autonomous agents completed successfully. Workflow 100% verified against OKF policies.</span>
+                </div>
+              )}
             </div>
           </div>
         )}

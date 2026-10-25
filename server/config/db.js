@@ -2,7 +2,8 @@ const mongoose = require("mongoose");
 
 const atlasConnect = async () => {
   try {
-    await mongoose.connect(process.env.MONGO_URI || process.env.ATLAS_URI);
+    const connectionUri = process.env.ATLAS_URI || process.env.MONGO_URI;
+    await mongoose.connect(connectionUri);
     console.log("✅ Database Connected Successfully");
   } catch (error) {
     console.error("❌ Database Connection Failed");

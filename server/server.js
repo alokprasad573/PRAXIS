@@ -1,7 +1,8 @@
 const express = require("express");
 const app = express();
 const cors = require("cors");
-require("dotenv").config();
+const path = require("path");
+require("dotenv").config({ path: path.join(__dirname, ".env") });
 
 const authRoutes = require("./routes/auth.routes");
 const projectRoutes = require("./routes/project.routes");
@@ -12,6 +13,8 @@ const agentRoutes = require("./routes/agent.routes");
 const notificationRoutes = require("./routes/notification.routes");
 const ragRoutes = require("./routes/rag.routes");
 const okfRoutes = require("./routes/okf.routes");
+const dashboardRoutes = require("./routes/dashboard.routes");
+const telemetryRoutes = require("./routes/telemetry.routes");
 const { atlasConnect } = require("./config/db");
 
 // Global Middlewares
@@ -57,7 +60,27 @@ app.use(
 app.use(express.json());
 
 atlasConnect()
-  .then(() => {
+  .then(async () => {
+    try {
+      const VectorEmbedding = require("./models/vectorEmbedding.models");
+      const cleanResult = await VectorEmbedding.deleteMany({ category: "okf_policy" });
+      if (cleanResult.deletedCount > 0) {
+        console.log(`[VectorDB Clean] Automatically purged ${cleanResult.deletedCount} legacy okf_policy chunks from VectorEmbedding.`);
+      }
+    } catch (e) {
+      console.warn("[VectorDB Clean]:", e.message);
+    }
+
+    try {
+      const { recoverDanglingWorkflows } = require("./services/agentOrchestrator.service");
+      const recovered = await recoverDanglingWorkflows({ autoResume: true });
+      if (recovered && recovered.length > 0) {
+        console.log(`[Orchestrator Recovery] Successfully recovered ${recovered.length} dangling workflows on startup.`);
+      }
+    } catch (e) {
+      console.warn("[Orchestrator Recovery]:", e.message);
+    }
+
     app.listen(PORT, () => {
       console.log(`🚀 Server running at http://localhost:${PORT}`);
     });
@@ -76,3 +99,7 @@ app.use("/api/agents", agentRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/rag", ragRoutes);
 app.use("/api/okf", okfRoutes);
+app.use("/api/dashboard", dashboardRoutes);
+app.use("/api/logs", telemetryRoutes);
+
+module.exports = app;

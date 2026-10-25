@@ -20,7 +20,9 @@ const WorkflowRunsView = ({
         (w) =>
           w.status === "running" ||
           w.status === "in_progress" ||
-          w.status === "pending",
+          w.status === "pending" ||
+          w.status === "waiting" ||
+          w.status === "blocked",
       );
     }
     return [];
@@ -35,7 +37,9 @@ const WorkflowRunsView = ({
         (w) =>
           w.status !== "running" &&
           w.status !== "in_progress" &&
-          w.status !== "pending",
+          w.status !== "pending" &&
+          w.status !== "waiting" &&
+          w.status !== "blocked",
       );
     }
     return [];
@@ -64,6 +68,13 @@ const WorkflowRunsView = ({
       return (
         <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-500/15 text-rose-400 border border-rose-500/30 flex items-center gap-1 w-fit">
           <XCircle className="w-3 h-3" /> Failed
+        </span>
+      );
+    }
+    if (s === "waiting" || s === "blocked") {
+      return (
+        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/15 text-amber-400 border border-amber-500/30 flex items-center gap-1 w-fit">
+          <Clock className="w-3 h-3" /> Human Gate
         </span>
       );
     }

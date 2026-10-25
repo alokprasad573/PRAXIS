@@ -196,7 +196,7 @@ const AgentsView = ({ agents = [], onNavigate }) => {
                   {agent.name}
                 </h3>
                 <div className="text-[10px] font-mono text-orange-400/80 mb-3">
-                  {agent.model || "gpt-4o"}
+                  {agent.model || "qwen/qwen3.8-27b"}
                 </div>
                 <p className="text-xs text-[#b8ab97] line-clamp-2 mb-4 font-sans leading-relaxed">
                   {agent.description || "Specialized autonomous engineering worker."}

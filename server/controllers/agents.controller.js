@@ -10,7 +10,7 @@ const defaultAgents = [
     icon: "Code2",
     color: "amber",
     status: "active",
-    model: "claude-3-5-sonnet",
+    model: "qwen/qwen3.8-27b",
     successRate: 98.4,
     avgDuration: "42s",
     capabilities: ["AST Analysis", "Complexity Scoring", "Code Smells"],
@@ -24,7 +24,7 @@ const defaultAgents = [
     icon: "TestTube2",
     color: "emerald",
     status: "active",
-    model: "gpt-4o",
+    model: "deepseek-r1-distill-llama-70b",
     successRate: 94.1,
     avgDuration: "1m 18s",
     capabilities: ["Autonomous Test Generation", "Coverage Analysis", "Regression Defense"],
@@ -38,7 +38,7 @@ const defaultAgents = [
     icon: "ShieldAlert",
     color: "rose",
     status: "active",
-    model: "claude-3-5-sonnet",
+    model: "qwen/qwen3.8-27b",
     successRate: 99.1,
     avgDuration: "35s",
     capabilities: ["CWE Detection", "SQLi/XSS Prevention", "Dependency Vulnerability"],
@@ -52,7 +52,7 @@ const defaultAgents = [
     icon: "Rocket",
     color: "blue",
     status: "active",
-    model: "gpt-4o",
+    model: "deepseek-r1-distill-llama-70b",
     successRate: 96.8,
     avgDuration: "2m 05s",
     capabilities: ["Helm Synthesis", "Terraform Plan", "Canary Rollouts"],
@@ -61,13 +61,24 @@ const defaultAgents = [
   },
 ];
 
-// 1. GET AGENT LIBRARY (Auto-seeds if DB is empty)
+// 1. GET AGENT LIBRARY (Auto-seeds or updates open-source models)
 exports.getAgents = async (req, res) => {
   try {
     let agents = await Agent.find().sort({ agentId: 1 });
 
     if (agents.length === 0) {
       agents = await Agent.insertMany(defaultAgents);
+    } else {
+      // Migrate legacy models if any were seeded earlier
+      for (const a of agents) {
+        if (a.model && (a.model.includes("gpt") || a.model.includes("claude"))) {
+          const match = defaultAgents.find((d) => d.agentId === a.agentId);
+          if (match) {
+            a.model = match.model;
+            await a.save();
+          }
+        }
+      }
     }
 
     res.status(200).json({ success: true, data: agents });

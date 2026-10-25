@@ -31,7 +31,7 @@ const agentSchema = new mongoose.Schema(
     },
     model: {
       type: String,
-      default: "gpt-4o", // gpt-4o, claude-3-5-sonnet, gemini-2-0-flash
+      default: "qwen/qwen3.8-27b",
     },
     successRate: {
       type: Number,

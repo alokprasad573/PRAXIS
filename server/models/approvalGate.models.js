@@ -17,6 +17,15 @@ const approvalGateSchema = new mongoose.Schema(
       ref: "Project",
       required: true,
     },
+    workspace: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Workspace",
+      index: true,
+    },
+    stepIndex: {
+      type: Number,
+      default: 3,
+    },
     branch: String,
     requestedBy: String, // e.g. "Unit Test Agent"
     action: {

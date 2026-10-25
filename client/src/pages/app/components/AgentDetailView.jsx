@@ -22,22 +22,39 @@ import {
 } from "lucide-react";
 
 const AgentDetailView = ({
-  agentId = "agent-003",
+  agentId = "agent-001",
   agents = [],
+  agentRuns = [],
   onNavigate,
   onToast,
 }) => {
   const agent =
-    agents.find((a) => a.id === agentId) || {
-      id: "agent-003",
-      name: "Unit Test Agent",
-      model: "claude-3-5-sonnet",
-      status: "running",
-      totalRuns: 156,
-      successRate: 91.7,
+    agents.find(
+      (a) =>
+        a.agentId === agentId ||
+        a._id === agentId ||
+        (a._id && a._id.toString() === agentId) ||
+        a.id === agentId
+    ) ||
+    agents[0] || {
+      agentId: "agent-001",
+      name: "Code Analysis Agent",
+      model: "qwen/qwen3.8-27b",
+      status: "active",
+      totalRuns: 0,
+      successRate: 98.4,
       description:
-        "Autonomous test gap discovery, test synthesis, execution in sandbox, and iterative self-improvement loop.",
+        "Performs full AST structural parsing, module dependency graph resolution, and semantic code review.",
     };
+
+  const matchingRuns = agentRuns.filter(
+    (r) =>
+      r.agent === agent._id ||
+      r.agent?._id === agent._id ||
+      r.agent?.agentId === agent.agentId ||
+      r.agent?.name === agent.name
+  );
+  const latestRun = matchingRuns[0] || null;
 
   const steps = [
     { name: "Repository Source Files", status: "done", icon: Database, time: "0.2s" },
@@ -284,10 +301,12 @@ const AgentDetailView = ({
               <Terminal className="w-3.5 h-3.5" /> Last Agent Output
             </div>
             <p className="leading-relaxed text-cream-100">
-              &quot;Remediating StripeWebhook.verifySignature failure. Added missing fixture for event timestamp offset. Re-running Jest test runner in sandbox...&quot;
+              {latestRun
+                ? `[${latestRun.status}] ${latestRun.task} — Finished in ${latestRun.duration || "1.2s"} consuming ${latestRun.tokens || 0} tokens.`
+                : agent.description}
             </p>
             <div className="mt-2 text-[10px] text-[#8a7f70]">
-              ~ Just now • Autonomous Fix #2
+              {latestRun ? `Run ID: ${latestRun.runId}` : `Status: ${agent.status}`}
             </div>
           </div>
         </div>

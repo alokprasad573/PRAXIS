@@ -52,12 +52,14 @@ const sessionSchema = new mongoose.Schema(
     expiresAt: {
       type: Date,
       required: true,
-      index: { expires: 0 }, // MongoDB automatic TTL cleanup
     },
   },
   {
     timestamps: true,
   },
 );
+
+// Explicit TTL index definition to guarantee automatic session document expiration
+sessionSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
 
 module.exports = mongoose.model("Session", sessionSchema);

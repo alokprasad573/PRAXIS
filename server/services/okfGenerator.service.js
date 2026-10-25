@@ -6,8 +6,6 @@
  */
 
 const OkfPolicy = require("../models/okfPolicy.models");
-const VectorEmbedding = require("../models/vectorEmbedding.models");
-const { getEmbedding } = require("./embedding.service");
 
 /**
  * Inspect repository files & metadata to detect framework, database drivers, and architecture
@@ -134,14 +132,9 @@ async function generateAndStoreOkfGuardrails({ project, files = [] }) {
 
   // 2. Remove existing OKF policies for this specific project
   await OkfPolicy.deleteMany({ project: project._id });
-  await VectorEmbedding.deleteMany({
-    project: project._id,
-    category: "okf_policy",
-  });
 
-  // 3. Store synthesized policies into MongoDB OkfPolicy & VectorEmbedding
+  // 3. Store synthesized policies into MongoDB OkfPolicy
   const storedPolicies = [];
-  const vectorDocs = [];
 
   for (const p of policiesToStore) {
     const doc = await OkfPolicy.create({
@@ -159,35 +152,10 @@ async function generateAndStoreOkfGuardrails({ project, files = [] }) {
     });
 
     storedPolicies.push(doc);
-
-    // Prepare Vector embedding for RAG retrieval
-    const textToIndex = `Policy: ${doc.policyId} - ${doc.name}\nCategory: ${doc.category}\nRisk: ${doc.risk}\nDescription: ${doc.description}\nDeterministic Rule:\n${doc.rule}`;
-    const embedding = await getEmbedding(textToIndex);
-
-    vectorDocs.push({
-      workspace: project.workspace,
-      project: project._id,
-      category: "okf_policy",
-      source: doc.policyId,
-      title: doc.name,
-      content: textToIndex,
-      metadata: {
-        policyId: doc.policyId,
-        riskLevel: doc.risk,
-        astType: "guardrail_policy",
-      },
-      embedding,
-      tokenCount: Math.ceil(textToIndex.length / 4),
-    });
-  }
-
-  // Batch insert all vector embeddings in 1 single DB round-trip
-  if (vectorDocs.length > 0) {
-    await VectorEmbedding.insertMany(vectorDocs);
   }
 
   console.log(
-    `[OKF Guardrails]: Successfully stored ${storedPolicies.length} deterministic OKF guardrails and vector embeddings in MongoDB.`
+    `[OKF Guardrails]: Successfully stored ${storedPolicies.length} deterministic OKF governance guardrails in MongoDB.`
   );
 
   return storedPolicies;

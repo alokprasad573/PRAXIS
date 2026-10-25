@@ -1,11 +1,53 @@
+const mongoose = require("mongoose");
 const ApprovalGate = require("../models/approvalGate.models");
 const Workflow = require("../models/workflow.models");
+const Project = require("../models/project.models");
+const User = require("../models/user.models");
 const Notification = require("../models/notifications.models");
+const { resumeWorkflowAfterApproval } = require("../services/agentOrchestrator.service");
+
+/**
+ * Builds a workspace authorization match query for ApprovalGate records.
+ * Uses req.workspaceId derived from the authenticated session.
+ * Also matches approval records linked to projects belonging to this workspace
+ * to support legacy records created before explicit workspace tagging.
+ */
+async function buildWorkspaceApprovalFilter(workspaceId, extra = {}) {
+  if (!workspaceId) {
+    return { _id: null, ...extra };
+  }
+
+  const validWorkspaceId = mongoose.Types.ObjectId.isValid(workspaceId.toString())
+    ? new mongoose.Types.ObjectId(workspaceId.toString())
+    : workspaceId;
+
+  // Find all projects owned by this workspace for backward compatibility
+  const workspaceProjects = await Project.find({ workspace: validWorkspaceId }).select("_id").lean();
+  const projectIds = workspaceProjects.map((p) => p._id);
+
+  return {
+    $and: [
+      {
+        $or: [
+          { workspace: validWorkspaceId },
+          { project: { $in: projectIds } },
+        ],
+      },
+      extra,
+    ],
+  };
+}
 
 // 1. GET PENDING APPROVALS FOR ACTIVE WORKSPACE
 exports.getPendingApprovals = async (req, res) => {
   try {
-    const approvals = await ApprovalGate.find({ status: "pending" })
+    const workspaceId = req.workspaceId;
+    if (!workspaceId) {
+      return res.status(200).json({ success: true, data: [] });
+    }
+
+    const filter = await buildWorkspaceApprovalFilter(workspaceId, { status: "pending" });
+    const approvals = await ApprovalGate.find(filter)
       .populate("workflow", "customId name branch executionMode")
       .populate("project", "name repo branch")
       .sort({ createdAt: -1 });
@@ -20,7 +62,8 @@ exports.getPendingApprovals = async (req, res) => {
 exports.decideApproval = async (req, res) => {
   try {
     const { id } = req.params;
-    const { decision } = req.body; // "approve" or "reject"
+    const { decision, reason = "" } = req.body || {};
+    const workspaceId = req.workspaceId;
 
     if (!["approve", "reject"].includes(decision)) {
       return res.status(400).json({
@@ -29,12 +72,23 @@ exports.decideApproval = async (req, res) => {
       });
     }
 
-    const gate = await ApprovalGate.findOne({
-      $or: [{ _id: id.match(/^[0-9a-fA-F]{24}$/) ? id : null }, { approvalId: id }],
-    }).populate("workflow").populate("project");
+    if (!workspaceId) {
+      return res.status(403).json({
+        success: false,
+        message: "Active workspace context required to decide approvals.",
+      });
+    }
+
+    const isObjectId = /^[0-9a-fA-F]{24}$/.test(id);
+    const identifierCondition = isObjectId ? { _id: id } : { approvalId: id };
+    const authFilter = await buildWorkspaceApprovalFilter(workspaceId, identifierCondition);
+
+    const gate = await ApprovalGate.findOne(authFilter)
+      .populate("workflow")
+      .populate("project");
 
     if (!gate) {
-      return res.status(404).json({ success: false, message: "Approval gate not found." });
+      return res.status(404).json({ success: false, message: "Approval gate not found in active workspace." });
     }
 
     if (gate.status !== "pending") {
@@ -50,45 +104,40 @@ exports.decideApproval = async (req, res) => {
     gate.decidedByName = req.user?.name || "Workspace Admin";
     gate.decidedAt = new Date();
     gate.decisionDuration = "Just now";
+    if (!gate.workspace && workspaceId) {
+      gate.workspace = workspaceId;
+    }
     await gate.save();
 
-    // Update associated workflow status
+    // Resume or fail the workflow through the orchestrator service
+    let resumeResult = null;
     if (gate.workflow) {
-      const workflow = await Workflow.findById(gate.workflow._id);
-      if (workflow) {
-        if (isApproved) {
-          workflow.progress = 100;
-          workflow.status = "completed";
-          workflow.completedAt = new Date();
-          if (workflow.agentPipeline && workflow.agentPipeline.length > 3) {
-            workflow.agentPipeline[3].status = "completed";
-            workflow.agentPipeline[3].output = "Authorized by human operator. Container promoted to staging cluster.";
-          }
-        } else {
-          workflow.status = "failed";
-          workflow.completedAt = new Date();
-          if (workflow.agentPipeline && workflow.agentPipeline.length > 3) {
-            workflow.agentPipeline[3].status = "failed";
-            workflow.agentPipeline[3].output = "Deployment aborted by human authorization gate.";
-          }
-        }
-        await workflow.save();
+      resumeResult = await resumeWorkflowAfterApproval({
+        approvalGateId: gate._id,
+        userId: req.userId,
+        decision,
+        reason,
+      });
 
-        // Create Real Notification
-        if (req.userId) {
-          await Notification.create({
-            user: req.userId,
-            title: isApproved
-              ? `GATE AUTHORIZED: ${gate.action} (${gate.approvalId})`
-              : `GATE REJECTED: ${gate.action} (${gate.approvalId})`,
-            description: isApproved
-              ? `Workflow ${workflow.customId} resumed and completed at 100%.`
-              : `Step rejected. Workflow ${workflow.customId} stopped.`,
-            category: "Approvals",
-            type: isApproved ? "success" : "high-risk",
-            unread: true,
-          });
-        }
+      // Create Real Notification
+      if (req.userId) {
+        const wf = resumeResult?.workflow || gate.workflow;
+        const customId = wf?.customId || "Workflow";
+        await Notification.create({
+          user: req.userId,
+          workspace: workspaceId,
+          title: isApproved
+            ? `GATE AUTHORIZED: ${gate.action} (${gate.approvalId})`
+            : `GATE REJECTED: ${gate.action} (${gate.approvalId})`,
+          description: isApproved
+            ? (resumeResult?.status === "completed"
+                ? `Workflow ${customId} resumed and completed at 100%.`
+                : `Workflow ${customId} resumed at Step ${(resumeResult?.nextStepIndex ?? 0) + 1}.`)
+            : `Step rejected. Workflow ${customId} stopped.`,
+          category: "Approvals",
+          type: isApproved ? "success" : "high-risk",
+          unread: true,
+        });
       }
     }
 
@@ -96,6 +145,7 @@ exports.decideApproval = async (req, res) => {
       success: true,
       message: `Action has been ${isApproved ? "authorized" : "rejected"} successfully.`,
       data: gate,
+      workflow: resumeResult?.workflow,
     });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
@@ -105,7 +155,13 @@ exports.decideApproval = async (req, res) => {
 // 3. GET APPROVAL AUDIT HISTORY
 exports.getApprovalHistory = async (req, res) => {
   try {
-    const history = await ApprovalGate.find({ status: { $ne: "pending" } })
+    const workspaceId = req.workspaceId;
+    if (!workspaceId) {
+      return res.status(200).json({ success: true, data: [] });
+    }
+
+    const filter = await buildWorkspaceApprovalFilter(workspaceId, { status: { $ne: "pending" } });
+    const history = await ApprovalGate.find(filter)
       .populate("workflow", "customId name")
       .populate("project", "name repo")
       .populate("decidedBy", "name email")

@@ -1,4 +1,4 @@
-import { Suspense, useState, useCallback, useEffect } from "react";
+import { Suspense, useState, useCallback, useEffect, useMemo } from "react";
 
 import Sidebar from "./components/Sidebar";
 import TopHeader from "./components/TopHeader";
@@ -16,6 +16,8 @@ import {
   notificationApi,
   ragApi,
   okfApi,
+  dashboardApi,
+  telemetryApi,
 } from "../../utils/apiService";
 import {
   mockTools,
@@ -63,8 +65,9 @@ const DashboardPage = () => {
   const [approvalHistory, setApprovalHistory] = useState([]);
   const [agents, setAgents] = useState([]);
   const [agentRuns, setAgentRuns] = useState([]);
-
-  const executionLogs = [];
+  const [executionLogs, setExecutionLogs] = useState([]);
+  const [analyticsData, setAnalyticsData] = useState(mockAnalyticsData);
+  const [tokenByAgent, setTokenByAgent] = useState([]);
   const [notifications, setNotifications] = useState([]);
   const [ragSources, setRagSources] = useState([]);
   const [okfPolicies, setOkfPolicies] = useState([]);
@@ -151,88 +154,169 @@ const DashboardPage = () => {
   useEffect(() => {
     let isMounted = true;
 
-    const load = (name, request, onSuccess) => {
-      request.then(
-        (response) => {
-          if (isMounted) onSuccess(response);
-        },
-        (error) => console.error(`Failed to load ${name}:`, error),
-      );
+    const loadFallbacks = () => {
+      const load = (name, request, onSuccess) => {
+        request.then(
+          (response) => {
+            if (isMounted) onSuccess(response);
+          },
+          (error) => console.error(`Failed to load ${name}:`, error),
+        );
+      };
+
+      load("workspace", workspaceApi.getCurrent(), (response) => {
+        if (response?.success && response.data) {
+          setWorkspace(response.data);
+          if (response.data.members) setTeamMembers(response.data.members);
+        }
+      });
+
+      load("projects", projectApi.getAll(), (response) => {
+        if (response?.success && response.data?.length > 0) {
+          setProjects(response.data);
+          setActiveProject(response.data[0]);
+        }
+      });
+
+      load("workflows", workflowApi.getAll(), (response) => {
+        if (response?.success && response.data) {
+          setWorkflows(response.data);
+          if (response.data.length > 0) {
+            setSelectedWorkflowId(
+              response.data[0].customId || response.data[0]._id,
+            );
+          }
+        }
+      });
+
+      load("pending approvals", approvalApi.getPending(), (response) => {
+        if (response?.success) setApprovals(response.data || []);
+      });
+
+      load("approval history", approvalApi.getHistory(), (response) => {
+        if (response?.success) setApprovalHistory(response.data || []);
+      });
+
+      load("agents", agentApi.getLibrary(), (response) => {
+        if (response?.success) setAgents(response.data || []);
+      });
+
+      load("agent runs", agentApi.getRuns(), (response) => {
+        if (response?.success) setAgentRuns(response.data || []);
+      });
+
+      load("notifications", notificationApi.getAll(), (response) => {
+        if (response?.success && Array.isArray(response.data)) {
+          setNotifications(response.data);
+        }
+      });
+
+      load("RAG sources", ragApi.getSources(), (response) => {
+        if (response?.success && Array.isArray(response.data)) {
+          setRagSources(response.data);
+        }
+      });
+
+      load("OKF policies", okfApi.getPolicies(), (response) => {
+        if (response?.success && Array.isArray(response.data)) {
+          setOkfPolicies(response.data);
+        }
+      });
+
+      load("telemetry logs", telemetryApi.getLogs(), (response) => {
+        if (response?.success && Array.isArray(response.data)) {
+          setExecutionLogs(response.data);
+        }
+      });
+
+      load("telemetry analytics", telemetryApi.getAnalytics(), (response) => {
+        if (response?.success && response.data?.analyticsData) {
+          setAnalyticsData(response.data.analyticsData);
+          if (Array.isArray(response.data.tokenByAgent)) {
+            setTokenByAgent(response.data.tokenByAgent);
+          }
+        }
+      });
     };
 
-    load("workspace", workspaceApi.getCurrent(), (response) => {
-      if (response?.success && response.data) {
-        setWorkspace(response.data);
-        if (response.data.members) setTeamMembers(response.data.members);
-      }
-    });
-
-    load("projects", projectApi.getAll(), (response) => {
-      if (response?.success && response.data?.length > 0) {
-        setProjects(response.data);
-        setActiveProject(response.data[0]);
-      }
-    });
-
-    load("workflows", workflowApi.getAll(), (response) => {
-      if (response?.success && response.data) {
-        setWorkflows(response.data);
-        if (response.data.length > 0) {
-          setSelectedWorkflowId(
-            response.data[0].customId || response.data[0]._id,
-          );
+    // Primary: Hydrate entire dashboard in 1 single bootstrap call
+    dashboardApi
+      .getBootstrap()
+      .then((res) => {
+        if (res?.success && res.data && isMounted) {
+          const d = res.data;
+          if (d.workspace) setWorkspace(d.workspace);
+          if (d.teamMembers) setTeamMembers(d.teamMembers);
+          if (d.projects?.length > 0) {
+            setProjects(d.projects);
+            setActiveProject(d.projects[0]);
+          }
+          if (d.workflows?.length > 0) {
+            setWorkflows(d.workflows);
+            setSelectedWorkflowId(
+              d.workflows[0].customId || d.workflows[0]._id,
+            );
+          }
+          if (d.approvals) setApprovals(d.approvals);
+          if (d.approvalHistory) setApprovalHistory(d.approvalHistory);
+          if (d.agents) setAgents(d.agents);
+          if (d.agentRuns) setAgentRuns(d.agentRuns);
+          if (d.notifications) setNotifications(d.notifications);
+          if (d.ragSources) setRagSources(d.ragSources);
+          if (d.okfPolicies) setOkfPolicies(d.okfPolicies);
+          // Also fetch telemetry logs & analytics in parallel
+          telemetryApi.getLogs().then((logRes) => {
+            if (logRes?.success && Array.isArray(logRes.data) && isMounted) {
+              setExecutionLogs(logRes.data);
+            }
+          }).catch(() => {});
+          telemetryApi.getAnalytics().then((anRes) => {
+            if (anRes?.success && anRes.data?.analyticsData && isMounted) {
+              setAnalyticsData(anRes.data.analyticsData);
+              if (Array.isArray(anRes.data.tokenByAgent)) {
+                setTokenByAgent(anRes.data.tokenByAgent);
+              }
+            }
+          }).catch(() => {});
+        } else {
+          loadFallbacks();
         }
-      }
-    });
-
-    load("pending approvals", approvalApi.getPending(), (response) => {
-      if (response?.success) setApprovals(response.data || []);
-    });
-
-    load("approval history", approvalApi.getHistory(), (response) => {
-      if (response?.success) setApprovalHistory(response.data || []);
-    });
-
-    load("agents", agentApi.getLibrary(), (response) => {
-      if (response?.success) setAgents(response.data || []);
-    });
-
-    load("agent runs", agentApi.getRuns(), (response) => {
-      if (response?.success) setAgentRuns(response.data || []);
-    });
-
-    load("notifications", notificationApi.getAll(), (response) => {
-      if (response?.success && Array.isArray(response.data)) {
-        setNotifications(response.data);
-      }
-    });
-
-    load("RAG sources", ragApi.getSources(), (response) => {
-      if (response?.success && Array.isArray(response.data)) {
-        setRagSources(response.data);
-      }
-    });
-
-    load("OKF policies", okfApi.getPolicies(), (response) => {
-      if (response?.success && Array.isArray(response.data)) {
-        setOkfPolicies(response.data);
-      }
-    });
+      })
+      .catch(() => {
+        if (isMounted) loadFallbacks();
+      });
 
     return () => {
       isMounted = false;
     };
   }, []);
 
-  // Live Workflow & Notification Poller (Only polls when workflows are actively progressing)
-  useEffect(() => {
-    const hasActiveWorkflow = workflows.some(
-      (w) => w.status === "running" || w.status === "in_progress",
+  // Derive boolean active workflow flag without tying effect lifecycle to array mutation (BUG-008 Fix)
+  const hasActiveWorkflow = useMemo(() => {
+    return (
+      Array.isArray(workflows) &&
+      workflows.some(
+        (w) =>
+          w &&
+          (w.status === "running" ||
+            w.status === "in_progress" ||
+            w.status === "waiting"),
+      )
     );
+  }, [workflows]);
 
-    if (!hasActiveWorkflow) return;
+  // Live Workflow & Telemetry Poller with decoupled, adaptive lifecycle (BUG-008 Fix)
+  useEffect(() => {
+    let isMounted = true;
+    let isFetching = false;
 
-    const interval = setInterval(async () => {
+    // Fast polling (3.5s) when workflows are active/waiting; relaxed polling (15s) when idle
+    const pollInterval = hasActiveWorkflow ? 3500 : 15000;
+
+    const poll = async () => {
+      if (isFetching || !isMounted) return;
+      isFetching = true;
+
       try {
         const [wfRes, apprRes, notifRes, runsRes] = await Promise.allSettled([
           workflowApi.getAll(),
@@ -240,6 +324,8 @@ const DashboardPage = () => {
           notificationApi.getAll(),
           agentApi.getRuns(),
         ]);
+
+        if (!isMounted) return;
 
         if (
           wfRes.status === "fulfilled" &&
@@ -271,11 +357,18 @@ const DashboardPage = () => {
         }
       } catch {
         // Background silent poll
+      } finally {
+        isFetching = false;
       }
-    }, 3500);
+    };
 
-    return () => clearInterval(interval);
-  }, [workflows]);
+    const intervalId = setInterval(poll, pollInterval);
+
+    return () => {
+      isMounted = false;
+      clearInterval(intervalId);
+    };
+  }, [hasActiveWorkflow]);
 
   // Project Switcher Handler
   const handleSelectProject = useCallback(
@@ -304,6 +397,27 @@ const DashboardPage = () => {
       handleNavigate("workflow-detail", wfId);
     },
     [addToast, handleNavigate],
+  );
+
+  const handleCancelWorkflow = useCallback(
+    async (workflowId) => {
+      try {
+        const res = await workflowApi.cancel(workflowId);
+        if (res.success) {
+          setWorkflows((prev) =>
+            prev.map((w) =>
+              w._id === workflowId || w.customId === workflowId
+                ? { ...w, status: "cancelled" }
+                : w
+            )
+          );
+          addToast(`Workflow ${workflowId} execution cancelled`, "warning");
+        }
+      } catch (err) {
+        addToast(`Failed to cancel workflow: ${err.message}`, "error");
+      }
+    },
+    [addToast],
   );
 
   // Repo Connection Handler
@@ -369,6 +483,11 @@ const DashboardPage = () => {
             ),
           );
           if (res.data) setApprovalHistory((prev) => [res.data, ...prev]);
+          if (res.workflow) {
+            setWorkflows((prev) =>
+              prev.map((w) => (w._id === res.workflow._id ? res.workflow : w)),
+            );
+          }
           addToast(
             `Approval granted for ${id}. Pipeline proceeding.`,
             "success",
@@ -394,6 +513,11 @@ const DashboardPage = () => {
             ),
           );
           if (res.data) setApprovalHistory((prev) => [res.data, ...prev]);
+          if (res.workflow) {
+            setWorkflows((prev) =>
+              prev.map((w) => (w._id === res.workflow._id ? res.workflow : w)),
+            );
+          }
           addToast(`Approval rejected for ${id}. Step aborted.`, "warning");
         } else {
           addToast(res.message || "Failed to record rejection", "error");
@@ -487,6 +611,7 @@ const DashboardPage = () => {
             workflows={workflows}
             onNavigate={handleNavigate}
             onToast={addToast}
+            onCancelWorkflow={handleCancelWorkflow}
           />
         );
 
@@ -512,6 +637,8 @@ const DashboardPage = () => {
         return (
           <AgentDetailView
             agentId={selectedAgentId}
+            agents={agents}
+            agentRuns={agentRuns}
             onNavigate={handleNavigate}
             onToast={addToast}
           />
@@ -593,7 +720,7 @@ const DashboardPage = () => {
         );
 
       case "logs":
-        return <LogsView executionLogs={executionLogs} onToast={addToast} />;
+        return <LogsView logs={executionLogs} executionLogs={executionLogs} onToast={addToast} />;
 
       case "reports":
         return <ReportsView onToast={addToast} />;
@@ -601,7 +728,8 @@ const DashboardPage = () => {
       case "analytics":
         return (
           <AnalyticsView
-            analyticsData={mockAnalyticsData}
+            analyticsData={analyticsData}
+            tokenByAgent={tokenByAgent.length > 0 ? tokenByAgent : undefined}
             onNavigate={handleNavigate}
           />
         );

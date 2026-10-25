@@ -50,6 +50,7 @@ const WorkflowsView = ({
             Completed
           </span>
         );
+      case "waiting_for_approval":
       case "blocked":
       case "waiting":
         return (
@@ -57,10 +58,22 @@ const WorkflowsView = ({
             Blocked Gate
           </span>
         );
+      case "cancelled":
+        return (
+          <span className="px-2 py-0.5 rounded text-[10px] bg-rose-500/15 text-rose-400 border border-rose-500/30 font-mono font-bold">
+            Cancelled
+          </span>
+        );
       case "failed":
         return (
           <span className="px-2 py-0.5 rounded text-[10px] bg-rose-500/15 text-rose-400 border border-rose-500/30 font-mono font-bold">
             Failed
+          </span>
+        );
+      case "queued":
+        return (
+          <span className="px-2 py-0.5 rounded text-[10px] bg-blue-500/15 text-blue-400 border border-blue-500/30 font-mono font-bold">
+            Queued
           </span>
         );
       default:

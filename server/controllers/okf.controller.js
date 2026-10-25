@@ -1,6 +1,5 @@
 const OkfPolicy = require("../models/okfPolicy.models");
-const VectorEmbedding = require("../models/vectorEmbedding.models");
-const { seedAndIndexOkfPolicies, indexSinglePolicy } = require("../services/okfIndexer.service");
+const { seedAndIndexOkfPolicies } = require("../services/okfIndexer.service");
 
 // 1. GET OKF POLICIES (Scoped by Repository / Project)
 exports.getPolicies = async (req, res) => {
@@ -68,12 +67,9 @@ exports.createPolicy = async (req, res) => {
       triggers: 0,
     });
 
-    // Vector index this new policy
-    await indexSinglePolicy(policy);
-
     res.status(201).json({
       success: true,
-      message: `Policy ${policy.name} created and indexed for repository.`,
+      message: `Policy ${policy.name} created for repository.`,
       data: {
         id: policy.policyId,
         _id: policy._id,
@@ -143,12 +139,6 @@ exports.deletePolicy = async (req, res) => {
     if (!policy) {
       return res.status(404).json({ success: false, message: "Policy not found." });
     }
-
-    // Also remove from VectorEmbedding
-    await VectorEmbedding.deleteMany({
-      category: "okf_policy",
-      source: policy.policyId,
-    });
 
     res.status(200).json({
       success: true,

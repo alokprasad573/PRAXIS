@@ -19,7 +19,16 @@ const workflowRunSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ["Running", "Success", "Failed", "Aborted"],
+      enum: [
+        "Running",
+        "Success",
+        "Failed",
+        "Aborted",
+        "Cancelled",
+        "Waiting",
+        "Queued",
+        "Skipped",
+      ],
       default: "Running",
     },
     currentStep: {

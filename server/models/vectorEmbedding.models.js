@@ -14,7 +14,7 @@ const vectorEmbeddingSchema = new mongoose.Schema(
     },
     category: {
       type: String,
-      enum: ["code", "docs", "okf_policy", "artifact"],
+      enum: ["code", "docs", "artifact"],
       default: "code",
       index: true,
     },

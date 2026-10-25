@@ -102,7 +102,9 @@ const AgentRunsView = ({ agentRuns = [] }) => {
                 const runId = r.runId || r.id || r._id || `run-${idx}`;
                 const agentName = r.agent?.name || r.agent || "Agent";
                 const isSuccess = r.status === "Success" || r.status === "completed";
-                const timeStr = r.startedAt ? new Date(r.startedAt).toLocaleTimeString() : r.time || "Recently";
+                const timeStr = (r.createdAt || r.startedAt)
+                  ? new Date(r.createdAt || r.startedAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+                  : (r.time || "Recently");
 
                 return (
                   <tr key={runId} className="hover:bg-[#14151b] transition-colors">
