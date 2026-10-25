@@ -155,7 +155,9 @@ export const projectApi = {
   },
 
   connectRepo: async (payload) => {
-    const res = await axiosInstance.post(API_PATHS.PROJECTS.CONNECT, payload);
+    const res = await axiosInstance.post(API_PATHS.PROJECTS.CONNECT, payload, {
+      timeout: 120000, // 120s timeout so large repos & AI OKF synthesis don't get aborted prematurely
+    });
     return res.data;
   },
 
@@ -262,7 +264,9 @@ export const ragApi = {
   },
 
   reindex: async (projectId, files) => {
-    const res = await axiosInstance.post(API_PATHS.RAG.REINDEX, { projectId, files });
+    const res = await axiosInstance.post(API_PATHS.RAG.REINDEX, { projectId, files }, {
+      timeout: 120000,
+    });
     return res.data;
   },
 

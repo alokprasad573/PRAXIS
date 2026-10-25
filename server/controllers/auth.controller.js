@@ -150,8 +150,25 @@ exports.login = async (req, res) => {
     // Resolve or fallback Workspace & Project
     let workspaceId = user.activeWorkspace?._id;
     if (!workspaceId) {
-      const existingWs = await Workspace.findOne({ owner: user._id });
-      workspaceId = existingWs?._id;
+      const existingWs = await Workspace.findOne({
+        $or: [{ owner: user._id }, { "members.user": user._id }],
+      });
+      if (existingWs) {
+        workspaceId = existingWs._id;
+        user.activeWorkspace = existingWs._id;
+        await user.save();
+      } else {
+        const newWs = await Workspace.create({
+          name: `${user.name.split(" ")[0]}'s Workspace`,
+          slug: `${user.name.toLowerCase().replace(/\s+/g, "-")}-org`,
+          owner: user._id,
+          plan: "Enterprise Dedicated Swarm",
+          members: [{ user: user._id, role: "Owner / Admin" }],
+        });
+        workspaceId = newWs._id;
+        user.activeWorkspace = newWs._id;
+        await user.save();
+      }
     }
 
     let projectId = user.activeProject?._id;
@@ -439,6 +456,23 @@ exports.githubCallback = async (req, res) => {
       user.githubUsername = githubUser.login;
       if (githubUser.avatar_url && !user.avatar) {
         user.avatar = githubUser.avatar_url;
+      }
+      if (!user.activeWorkspace) {
+        const existingWs = await Workspace.findOne({
+          $or: [{ owner: user._id }, { "members.user": user._id }],
+        });
+        if (existingWs) {
+          user.activeWorkspace = existingWs._id;
+        } else {
+          const newWs = await Workspace.create({
+            name: `${user.name.split(" ")[0]}'s Workspace`,
+            slug: `${user.name.toLowerCase().replace(/\s+/g, "-")}-org`,
+            owner: user._id,
+            plan: "Enterprise Dedicated Swarm",
+            members: [{ user: user._id, role: "Owner / Admin" }],
+          });
+          user.activeWorkspace = newWs._id;
+        }
       }
       await user.save();
     }

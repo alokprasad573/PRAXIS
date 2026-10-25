@@ -8,10 +8,11 @@ const { indexProjectRepository, indexSourceFile } = require("../services/codeChu
 const buildIdFilter = (id) => {
   if (!id) return null;
   const strId = id.toString();
+  const filters = [strId];
   if (mongoose.Types.ObjectId.isValid(strId)) {
-    return { $in: [new mongoose.Types.ObjectId(strId), strId] };
+    filters.push(new mongoose.Types.ObjectId(strId));
   }
-  return strId;
+  return { $in: filters };
 };
 
 // 1. GET RAG SOURCES & INDEX STATUS FOR A SPECIFIC REPOSITORY
@@ -20,7 +21,9 @@ exports.getSources = async (req, res) => {
     const { projectId } = req.query;
     const workspaceId = req.workspaceId;
 
-    const matchFilter = {};
+    const matchFilter = {
+      category: "code",
+    };
 
     if (projectId && projectId !== "all") {
       matchFilter.project = buildIdFilter(projectId);
@@ -29,7 +32,7 @@ exports.getSources = async (req, res) => {
     }
 
     // Group VectorEmbeddings strictly from MongoDB for this project / workspace
-    let chunks = await VectorEmbedding.aggregate([
+    const chunks = await VectorEmbedding.aggregate([
       { $match: matchFilter },
       {
         $group: {
@@ -43,26 +46,6 @@ exports.getSources = async (req, res) => {
       { $sort: { chunkCount: -1, lastUpdated: -1 } },
     ]);
 
-    // Robust Fallback: If 0 chunks found with strict project filter, check if any chunks exist in collection
-    if (chunks.length === 0) {
-      const allChunks = await VectorEmbedding.aggregate([
-        {
-          $group: {
-            _id: "$source",
-            category: { $first: "$category" },
-            chunkCount: { $sum: 1 },
-            lastUpdated: { $max: "$updatedAt" },
-            sampleTitle: { $first: "$title" },
-          },
-        },
-        { $sort: { chunkCount: -1, lastUpdated: -1 } },
-        { $limit: 30 },
-      ]);
-      if (allChunks.length > 0) {
-        chunks = allChunks;
-      }
-    }
-
     const formattedSources = chunks.map((c) => ({
       name: c._id,
       type: c.category || "code",
@@ -70,10 +53,18 @@ exports.getSources = async (req, res) => {
       status: "indexed",
       lastUpdated: c.lastUpdated ? new Date(c.lastUpdated).toLocaleDateString() : "Recently",
       size: `${(c.chunkCount * 1.6).toFixed(1)} KB`,
-      icon: c.category === "code" ? "code-2" : c.category === "okf_policy" ? "shield" : "file-text",
+      icon: "code-2",
     }));
 
     const totalChunks = formattedSources.reduce((acc, s) => acc + s.chunks, 0);
+
+    // Keep project record in sync if projectId was queried
+    if (projectId && mongoose.Types.ObjectId.isValid(projectId)) {
+      Project.findByIdAndUpdate(projectId, {
+        ragChunks: totalChunks,
+        ragStatus: totalChunks > 0 ? "indexed" : "pending",
+      }).catch((e) => console.warn("Failed to sync project ragChunks:", e.message));
+    }
 
     res.status(200).json({
       success: true,
@@ -90,7 +81,7 @@ exports.getSources = async (req, res) => {
 // 2. QUERY VECTOR EMBEDDINGS (Semantic Search Scoped to Repository)
 exports.queryVector = async (req, res) => {
   try {
-    const { query, threshold = 0.5, limit = 5, category, projectId } = req.body;
+    const { query, threshold = 0.05, limit = 6, category, projectId } = req.body;
 
     if (!query) {
       return res.status(400).json({ success: false, message: "Query text is required." });
@@ -148,6 +139,7 @@ exports.reindex = async (req, res) => {
       projectName: project.name,
       chunksCount: result.ragChunks || 0,
       okfPolicies: result.okfPolicies || 0,
+      project: result.project,
       message: result.message || `Repository ${project.name} vector re-indexing completed with ${result.ragChunks || 0} real chunks.`,
     });
   } catch (error) {

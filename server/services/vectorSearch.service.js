@@ -32,7 +32,7 @@ async function searchSimilarChunks({
   projectId = null,
   category = null, // "code" | "okf_policy" | "docs"
   limit = 5,
-  minScore = 0.65,
+  minScore = 0.05,
 }) {
   if (!query || typeof query !== "string") {
     return [];
@@ -54,17 +54,10 @@ async function searchSimilarChunks({
   }
   if (category) filter.category = category;
 
-  // 3. Fetch candidate documents from MongoDB
+  // 3. Fetch candidate documents from MongoDB strictly isolated by project / workspace
   let candidates = await VectorEmbedding.find(filter)
     .select("source title content metadata category chunkIndex tokenCount embedding")
     .lean();
-
-  // If no candidates found with strict filter, fallback to all embeddings in collection
-  if ((!candidates || candidates.length === 0) && projectId) {
-    candidates = await VectorEmbedding.find(category ? { category } : {})
-      .select("source title content metadata category chunkIndex tokenCount embedding")
-      .lean();
-  }
 
   if (!candidates || candidates.length === 0) {
     return [];

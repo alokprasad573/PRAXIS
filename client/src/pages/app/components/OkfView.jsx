@@ -10,7 +10,10 @@ import {
 } from "lucide-react";
 import { okfApi } from "../../../utils/apiService";
 
+const EMPTY_POLICIES = [];
+
 const OkfView = ({
+  policies = EMPTY_POLICIES,
   projects = [],
   activeProject = null,
   onSelectProject,
@@ -19,40 +22,12 @@ const OkfView = ({
   const activeProjectId = activeProject?._id || activeProject?.id || null;
   const firstProjectId =
     projects.length > 0 ? projects[0]._id || projects[0].id : null;
-  const [selectedProjectId, setSelectedProjectId] = useState(
-    activeProjectId || firstProjectId,
-  );
-  const [syncedProjectSource, setSyncedProjectSource] = useState({
-    activeProjectId,
-    firstProjectId,
-  });
+  const initialProjectId = activeProjectId || firstProjectId || null;
 
-  if (
-    syncedProjectSource.activeProjectId !== activeProjectId ||
-    syncedProjectSource.firstProjectId !== firstProjectId
-  ) {
-    setSyncedProjectSource({ activeProjectId, firstProjectId });
-    if (activeProjectId) {
-      setSelectedProjectId(activeProjectId);
-    } else if (firstProjectId) {
-      setSelectedProjectId(firstProjectId);
-    } else {
-      setSelectedProjectId("");
-      setLocalPolicies([]);
-    }
-  }
-
-  // Auto-switch away if currently selected project was deleted/delinked
-  if (selectedProjectId && projects.length > 0 && !projects.some((p) => (p._id || p.id) === selectedProjectId)) {
-    const nextId = projects[0]._id || projects[0].id || "";
-    setSelectedProjectId(nextId);
-  } else if (projects.length === 0 && selectedProjectId) {
-    setSelectedProjectId("");
-    setLocalPolicies([]);
-  }
-  const [localPolicies, setLocalPolicies] = useState([]);
+  const [selectedProjectId, setSelectedProjectId] = useState(initialProjectId);
+  const [localPolicies, setLocalPolicies] = useState(policies || []);
   const [isLoading, setIsLoading] = useState(
-    Boolean(activeProjectId || firstProjectId),
+    Boolean(initialProjectId && (!policies || policies.length === 0)),
   );
   const [togglingId, setTogglingId] = useState(null);
   const [deletingId, setDeletingId] = useState(null);
@@ -68,6 +43,39 @@ const OkfView = ({
     rule: '// Deterministic assertion rule\nif (condition) {\n  return blockAction("Reason for block");\n}',
   });
 
+  const [previousActiveProjectId, setPreviousActiveProjectId] = useState(activeProjectId);
+  const [prevPolicies, setPrevPolicies] = useState(policies);
+
+  // Sync when parent provides new policies prop
+  if (policies !== prevPolicies) {
+    setPrevPolicies(policies);
+    if (Array.isArray(policies) && policies.length > 0 && localPolicies.length === 0) {
+      setLocalPolicies(policies);
+      setIsLoading(false);
+    }
+  }
+
+  // Adjust local selection when parent changes active project
+  if (activeProjectId && activeProjectId !== previousActiveProjectId) {
+    setPreviousActiveProjectId(activeProjectId);
+    setSelectedProjectId(activeProjectId);
+    setIsLoading(true);
+  } else if (!activeProjectId && projects.length > 0 && !selectedProjectId) {
+    setSelectedProjectId(projects[0]._id || projects[0].id);
+    setIsLoading(true);
+  }
+
+  // Auto-switch away if currently selected project was deleted/delinked
+  if (selectedProjectId && projects.length > 0 && !projects.some((p) => (p._id || p.id) === selectedProjectId)) {
+    const nextId = projects[0]._id || projects[0].id || null;
+    setSelectedProjectId(nextId);
+    setIsLoading(Boolean(nextId));
+  } else if (projects.length === 0 && selectedProjectId) {
+    setSelectedProjectId(null);
+    setLocalPolicies([]);
+    setIsLoading(false);
+  }
+
   const currentProject =
     projects.find((p) => (p._id || p.id) === selectedProjectId) ||
     activeProject ||
@@ -75,10 +83,13 @@ const OkfView = ({
 
   // Fetch real policies strictly for the selected repository
   useEffect(() => {
-    if (!selectedProjectId) return;
+    if (!selectedProjectId) {
+      return;
+    }
 
     let ignore = false;
     const fetchPolicies = async () => {
+      setIsLoading(true);
       try {
         const res = await okfApi.getPolicies(selectedProjectId);
         if (!ignore) {
@@ -88,7 +99,9 @@ const OkfView = ({
         }
       } catch (err) {
         console.error("Failed to load OKF policies:", err);
-        if (!ignore) setLocalPolicies([]);
+        if (!ignore) {
+          setLocalPolicies(Array.isArray(policies) ? policies : []);
+        }
       } finally {
         if (!ignore) setIsLoading(false);
       }
@@ -98,7 +111,7 @@ const OkfView = ({
     return () => {
       ignore = true;
     };
-  }, [selectedProjectId]);
+  }, [selectedProjectId, policies]);
 
   // Handle switching repository
   const handleProjectChange = (e) => {
@@ -113,7 +126,7 @@ const OkfView = ({
 
   // Toggle Policy Status
   const handleToggle = async (policy) => {
-    const targetId = policy.id || policy.policyId || policy._id;
+    const targetId = policy?._id || policy?.id || policy?.policyId;
     if (!targetId) return;
 
     setTogglingId(targetId);
@@ -122,22 +135,22 @@ const OkfView = ({
       if (res?.success) {
         setLocalPolicies((prev) =>
           prev.map((p) => {
-            const pid = p.id || p.policyId || p._id;
+            const pid = p?._id || p?.id || p?.policyId;
             if (pid === targetId) {
               const updatedStatus =
                 p.status === "enabled" ? "disabled" : "enabled";
-              return { ...p, status: updatedStatus };
+              return { ...p, status: res.data?.status || updatedStatus };
             }
             return p;
           }),
         );
         if (onToast)
           onToast(
-            `Policy ${policy.name} is now ${res.data?.status || "updated"}`,
+            `Policy ${policy.name || targetId} is now ${res.data?.status || "updated"}`,
             "success",
           );
       } else {
-        if (onToast) onToast("Failed to toggle policy status", "error");
+        if (onToast) onToast(res?.message || "Failed to toggle policy status", "error");
       }
     } catch (err) {
       console.error("Policy toggle error:", err);
@@ -149,12 +162,12 @@ const OkfView = ({
 
   // Delete Policy
   const handleDelete = async (policy) => {
-    const targetId = policy.id || policy.policyId || policy._id;
+    const targetId = policy?._id || policy?.id || policy?.policyId;
     if (!targetId) return;
 
     if (
       !window.confirm(
-        `Delete rule "${policy.name}" from ${currentProject?.name || "this repository"}?`,
+        `Delete rule "${policy.name || targetId}" from ${currentProject?.name || "this repository"}?`,
       )
     ) {
       return;
@@ -165,11 +178,11 @@ const OkfView = ({
       const res = await okfApi.deletePolicy(targetId);
       if (res?.success) {
         setLocalPolicies((prev) =>
-          prev.filter((p) => (p.id || p.policyId || p._id) !== targetId),
+          prev.filter((p) => (p?._id || p?.id || p?.policyId) !== targetId),
         );
-        if (onToast) onToast(`Policy ${policy.name} deleted`, "info");
+        if (onToast) onToast(`Policy ${policy.name || targetId} deleted`, "info");
       } else {
-        if (onToast) onToast("Failed to delete policy", "error");
+        if (onToast) onToast(res?.message || "Failed to delete policy", "error");
       }
     } catch (err) {
       console.error("Delete policy error:", err);
@@ -190,9 +203,10 @@ const OkfView = ({
 
     setIsSubmittingRule(true);
     try {
+      const targetProjectId = selectedProjectId || activeProjectId || firstProjectId || null;
       const res = await okfApi.createPolicy({
         ...ruleFormData,
-        projectId: selectedProjectId,
+        projectId: targetProjectId,
       });
 
       if (res?.success && res.data) {
@@ -207,7 +221,7 @@ const OkfView = ({
         });
         if (onToast)
           onToast(
-            `Rule "${res.data.name}" added to ${currentProject?.name}`,
+            `Rule "${res.data.name}" added to ${currentProject?.name || "repository"}`,
             "success",
           );
       } else {
@@ -226,13 +240,19 @@ const OkfView = ({
   };
 
   const handleApplyBaseline = async () => {
-    if (!selectedProjectId) return;
+    const targetProjId = selectedProjectId || activeProjectId || firstProjectId;
+    if (!targetProjId) {
+      if (onToast) onToast("Please select a repository first", "error");
+      return;
+    }
     setIsLoading(true);
     try {
-      const res = await okfApi.applyBaseline(selectedProjectId);
+      const res = await okfApi.applyBaseline(targetProjId);
       if (res?.success && Array.isArray(res.data)) {
         setLocalPolicies(res.data);
         if (onToast) onToast("Standard baseline guardrails applied to repository", "success");
+      } else {
+        if (onToast) onToast(res?.message || "Failed to apply baseline rules", "error");
       }
     } catch (err) {
       console.error("Apply baseline error:", err);
@@ -243,22 +263,36 @@ const OkfView = ({
   };
 
   const renderCode = (rule) => {
+    let content;
+    if (typeof rule === "string") {
+      content = rule;
+    } else if (rule && typeof rule === "object") {
+      try {
+        content = JSON.stringify(rule, null, 2);
+      } catch {
+        content = String(rule);
+      }
+    } else {
+      content = "// No deterministic assertion rule defined";
+    }
+
     return (
       <pre className="leading-relaxed font-mono text-[11px] text-cream-100">
-        <code>{rule}</code>
+        <code>{content}</code>
       </pre>
     );
   };
 
-  const getRiskBadge = (risk) => {
-    if (risk === "high") {
+  const getRiskBadge = (risk = "medium") => {
+    const r = (risk || "medium").toLowerCase();
+    if (r === "high") {
       return (
         <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-rose-500/15 text-rose-400 border border-rose-500/30 uppercase">
           High Risk
         </span>
       );
     }
-    if (risk === "medium") {
+    if (r === "medium") {
       return (
         <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-amber-500/15 text-amber-400 border border-amber-500/30 uppercase">
           Medium Risk
@@ -273,11 +307,12 @@ const OkfView = ({
   };
 
   // Real calculations strictly from MongoDB
-  const activeCount = localPolicies.filter(
-    (p) => p.status === "enabled",
+  const safePolicies = Array.isArray(localPolicies) ? localPolicies : [];
+  const activeCount = safePolicies.filter(
+    (p) => p?.status === "enabled",
   ).length;
-  const totalInterceptions = localPolicies.reduce(
-    (acc, p) => acc + (p.triggers || 0),
+  const totalInterceptions = safePolicies.reduce(
+    (acc, p) => acc + (p?.triggers || 0),
     0,
   );
 
@@ -295,8 +330,7 @@ const OkfView = ({
             </span>
           </div>
           <p className="text-xs text-[#b8ab97] font-mono">
-            Organizational Knowledge Framework: Deterministic guardrails
-            configured per repository.
+            Organizational Knowledge Framework: Deterministic guardrails configured per repository.
           </p>
         </div>
 
@@ -332,7 +366,7 @@ const OkfView = ({
           <button
             type="button"
             onClick={() => setIsAddModalOpen(true)}
-            className="bg-orange-600 hover:bg-orange-500 text-white px-4 py-2 text-xs font-mono font-bold rounded-lg transition-all shadow-[0_0_12px_rgba(249,115,22,0.3)] flex items-center gap-1.5 cursor-pointer"
+            className="bg-orange-600 hover:bg-orange-500 text-white px-6 py-2 text-xs font-mono font-bold rounded-lg transition-all shadow-[0_0_12px_rgba(249,115,22,0.3)] flex items-center justify-center gap-1.5 cursor-pointer shrink-0"
           >
             <Plus className="w-3.5 h-3.5" /> Add Rule
           </button>
@@ -370,22 +404,20 @@ const OkfView = ({
           <div className="flex items-center gap-2 mb-2">
             <ShieldCheck className="w-5 h-5 text-orange-500" />
             <h3 className="font-bold text-cream-100 text-sm font-mono">
-              Deterministic Guardrails for{" "}
-              {currentProject?.name || "Repository"}
+              Deterministic Guardrails for {currentProject?.name || "Repository"}
             </h3>
           </div>
           <p className="text-xs text-[#b8ab97] leading-relaxed font-sans">
-            While RAG provides dynamic repository code context (80%), OKF
-            establishes immutable deterministic rules (20%) that agents cannot
-            bypass. If a policy fails, execution halts and invokes a Human
-            Approval Gate.
+            While RAG provides dynamic repository code context (80%), OKF establishes
+            immutable deterministic rules (20%) that agents cannot bypass. If a policy fails,
+            execution halts and invokes a Human Approval Gate.
           </p>
         </div>
         <div className="w-full md:w-1/3 shrink-0 bg-dark-base p-3.5 rounded-lg border border-dark-border font-mono text-xs">
           <div className="flex justify-between text-[11px] text-[#8a7f70] mb-2">
             <span>Active Rules:</span>
             <span className="text-orange-400 font-bold">
-              {activeCount} / {localPolicies.length} Enabled
+              {activeCount} / {safePolicies.length} Enabled
             </span>
           </div>
           <div className="flex justify-between text-[11px] text-[#8a7f70]">
@@ -403,16 +435,14 @@ const OkfView = ({
           <RefreshCw className="w-5 h-5 animate-spin text-orange-400" />
           Loading repository governance rules...
         </div>
-      ) : localPolicies.length === 0 ? (
+      ) : safePolicies.length === 0 ? (
         <div className="bg-dark-card border border-[#201d1a] rounded-xl p-12 text-center space-y-4">
           <ShieldCheck className="w-10 h-10 text-orange-400 mx-auto" />
           <h4 className="text-sm font-bold text-cream-100 font-mono">
-            No OKF Policies configured for{" "}
-            {currentProject?.name || "this repository"}
+            No OKF Policies configured for {currentProject?.name || "this repository"}
           </h4>
           <p className="text-xs text-[#8a7f70] font-mono max-w-md mx-auto">
-            Add custom deterministic rules or initialize the baseline policies
-            for this repository.
+            Add custom deterministic rules or initialize the baseline policies for this repository.
           </p>
           <div className="flex items-center justify-center gap-3 pt-2">
             <button
@@ -433,9 +463,14 @@ const OkfView = ({
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {localPolicies.map((p) => {
+          {safePolicies.map((p, idx) => {
+            if (!p) return null;
             const isEnabled = p.status === "enabled";
-            const policyKey = p.id || p.policyId || p._id;
+            const policyKey = p._id || p.id || p.policyId || `okf-key-${idx}`;
+            const displayId = p.id || p.policyId || `OKF-${String(idx + 1).padStart(3, "0")}`;
+            const displayName = p.name || "Governance Policy Rule";
+            const displayCategory = p.category || "Security Policies";
+            const displayDesc = p.description || "Deterministic guardrail constraint enforcing repository integrity.";
 
             return (
               <div
@@ -451,15 +486,15 @@ const OkfView = ({
                     <div>
                       <div className="flex items-center gap-2 mb-1">
                         <span className="text-[10px] font-mono text-orange-400 font-bold uppercase">
-                          {p.id || p.policyId || "OKF-RULE"}
+                          {displayId}
                         </span>
                         <span className="text-[#524c45]">|</span>
                         <span className="text-[10px] font-mono text-[#a89f91]">
-                          {p.category}
+                          {displayCategory}
                         </span>
                       </div>
                       <h3 className="text-sm font-bold text-cream-100">
-                        {p.name}
+                        {displayName}
                       </h3>
                     </div>
                     <div className="flex items-center gap-2">
@@ -477,7 +512,7 @@ const OkfView = ({
                   </div>
 
                   <p className="text-xs text-[#b8ab97] font-sans mb-4 leading-relaxed">
-                    {p.description}
+                    {displayDesc}
                   </p>
 
                   <div className="mb-4">

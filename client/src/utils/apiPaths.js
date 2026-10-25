@@ -1,5 +1,23 @@
-export const BASE_URL =
-  import.meta.env.VITE_BACKEND_URL || "http://localhost:8080";
+export const getBaseUrl = () => {
+  if (typeof window !== "undefined") {
+    const hostname = window.location.hostname;
+    // When running locally in the browser, direct to local backend server
+    if (hostname === "localhost" || hostname === "127.0.0.1") {
+      const envUrl = import.meta.env.VITE_BACKEND_URL;
+      if (envUrl && (envUrl.includes("localhost") || envUrl.includes("127.0.0.1"))) {
+        return envUrl.replace(/\/+$/, "");
+      }
+      return "http://localhost:8080";
+    }
+  }
+  const envUrl = import.meta.env.VITE_BACKEND_URL;
+  if (envUrl) {
+    return envUrl.replace(/\/+$/, "");
+  }
+  return "http://localhost:8080";
+};
+
+export const BASE_URL = getBaseUrl();
 
 export const API_PATHS = {
   // Authentication & Session Context

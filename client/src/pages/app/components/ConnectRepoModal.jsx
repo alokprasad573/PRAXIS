@@ -118,10 +118,16 @@ const ConnectRepoModal = ({ isOpen, onClose, onAddProject }) => {
         setErrorMsg(res.message || "Failed to connect repository.");
       }
     } catch (err) {
-      setErrorMsg(
-        err.response?.data?.message ||
-          "Failed to connect repository. Ensure backend is running.",
-      );
+      if (err.code === "ECONNABORTED") {
+        setErrorMsg(
+          "Connection is taking longer than expected. The repository is being indexed in the background. Please close this modal and check the repositories list in a moment.",
+        );
+      } else {
+        setErrorMsg(
+          err.response?.data?.message ||
+            "Failed to connect repository. Ensure backend is running.",
+        );
+      }
     } finally {
       setIsSubmitting(false);
     }

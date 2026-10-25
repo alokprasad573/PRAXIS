@@ -53,10 +53,19 @@ exports.getProjects = async (req, res) => {
     }
 
     // Query exact real chunk counts from VectorEmbedding collection in MongoDB
+    const allProjectIds = [];
+    projects.forEach((p) => {
+      allProjectIds.push(p._id);
+      allProjectIds.push(p._id.toString());
+      if (mongoose.Types.ObjectId.isValid(p._id)) {
+        allProjectIds.push(new mongoose.Types.ObjectId(p._id));
+      }
+    });
+
     const chunkCounts = await VectorEmbedding.aggregate([
       {
         $match: {
-          project: { $in: projects.map((p) => p._id) },
+          project: { $in: allProjectIds },
           category: "code",
         },
       },
@@ -68,9 +77,12 @@ exports.getProjects = async (req, res) => {
       },
     ]);
 
-    const chunkMap = new Map(
-      chunkCounts.map((c) => [c._id.toString(), c.total])
-    );
+    const chunkMap = new Map();
+    chunkCounts.forEach((c) => {
+      if (c._id) {
+        chunkMap.set(c._id.toString(), c.total);
+      }
+    });
 
     const formatted = projects.map((p) => {
       const actualChunks = chunkMap.get(p._id.toString()) ?? 0;
@@ -96,6 +108,7 @@ exports.getProjects = async (req, res) => {
 
 // 2. CONNECT NEW REPOSITORY / CREATE PROJECT
 exports.connectProject = async (req, res) => {
+  let createdProjectId = null;
   try {
     const { repoUrl, branch, ingestAst, ingestDocs, enableOkf, name, language, framework } = req.body;
 
@@ -124,6 +137,7 @@ exports.connectProject = async (req, res) => {
     const detectedLang = language || (cleanRepo.includes("frontend") || cleanRepo.includes("react") ? "TypeScript" : "Node.js");
     const detectedFramework = framework || (detectedLang === "TypeScript" ? "React" : "Express");
 
+    // 1. Create Project in Staging State
     const project = await Project.create({
       name: derivedName,
       workspace: workspaceId,
@@ -132,18 +146,13 @@ exports.connectProject = async (req, res) => {
       language: detectedLang,
       framework: detectedFramework,
       health: "healthy",
-      ragStatus: ingestAst ? "indexing" : "pending",
+      ragStatus: "indexing",
       ragChunks: 0,
       lastIndexed: new Date(),
     });
+    createdProjectId = project._id;
 
-    // Update active session context to the newly created project
-    if (req.session) {
-      req.session.project = project._id;
-      await req.session.save();
-    }
-
-    // Trigger Autonomous Ingestion: Gemini Embeddings + OKF GuardRails Synthesis
+    // 2. Trigger Ingestion: Vector Embeddings + OKF Guardrails Synthesis
     let ingestionResult = null;
     if (ingestAst !== false) {
       const { ingestRepositoryPipeline } = require("../services/ingestion.service");
@@ -151,11 +160,23 @@ exports.connectProject = async (req, res) => {
         project,
         userId: req.userId,
         enableOkf: enableOkf !== false,
+        isNewProject: true,
       });
+
+      // Strict Atomic Check: Both Vector Embeddings and OKF Guardrails must succeed!
+      if (!ingestionResult || !ingestionResult.success) {
+        throw new Error(ingestionResult?.message || "Vector embedding generation or OKF synthesis failed.");
+      }
     }
 
     const finalProject = ingestionResult?.project || project;
     const finalChunks = ingestionResult?.ragChunks ?? 0;
+
+    // 3. Update active session context only after full success
+    if (req.session) {
+      req.session.project = project._id;
+      await req.session.save();
+    }
 
     res.status(201).json({
       success: true,
@@ -163,7 +184,21 @@ exports.connectProject = async (req, res) => {
       data: formatProject(finalProject, 0, 3, finalChunks),
     });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    // 🛡️ Atomic Rollback: If vector embedding or OKF generation failed at any point,
+    // neither project, nor vectors, nor OKF guardrails remain in MongoDB!
+    if (createdProjectId) {
+      console.warn(`[Atomic Rollback] Purging project ${createdProjectId} and all partial artifacts from database.`);
+      await Promise.allSettled([
+        Project.findByIdAndDelete(createdProjectId),
+        VectorEmbedding.deleteMany({ project: createdProjectId }),
+        OkfPolicy.deleteMany({ project: createdProjectId }),
+      ]);
+    }
+
+    res.status(400).json({
+      success: false,
+      message: `Failed to connect repository: ${error.message}. All database records have been rolled back cleanly.`,
+    });
   }
 };
 

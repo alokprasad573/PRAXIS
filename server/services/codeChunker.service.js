@@ -70,11 +70,13 @@ function chunkCodeContent({ content, filePath, maxChunkLines = 45, overlap = 8 }
 async function indexSourceFile({ workspaceId, projectId, filePath, content, language = "JavaScript" }) {
   if (!content || !projectId) return 0;
   const chunks = chunkCodeContent({ content, filePath });
+  if (chunks.length === 0) return 0;
 
+  const docs = [];
   for (const c of chunks) {
     const embedding = await getEmbedding(c.text);
 
-    await VectorEmbedding.create({
+    docs.push({
       workspace: workspaceId,
       project: projectId,
       category: "code",
@@ -91,6 +93,10 @@ async function indexSourceFile({ workspaceId, projectId, filePath, content, lang
       tokenCount: c.tokenCount,
       chunkIndex: c.chunkIndex,
     });
+  }
+
+  if (docs.length > 0) {
+    await VectorEmbedding.insertMany(docs);
   }
 
   return chunks.length;
@@ -184,16 +190,36 @@ async function fetchAndIndexGithubRepo({ project, token }) {
       if (IGNORED_DIRS.has(p.split("/")[0])) return false;
       const ext = path.extname(p);
       return ALLOWED_EXTS.has(ext);
-    }).slice(0, 25);
+    }).slice(0, 50);
 
     let totalChunks = 0;
     for (const fileNode of codeFiles) {
       try {
-        const rawUrl = `https://raw.githubusercontent.com/${ghInfo.owner}/${ghInfo.repo}/${branch}/${fileNode.path}`;
-        const fileRes = await fetch(rawUrl, { headers: token ? { Authorization: `Bearer ${token}` } : {} });
+        let content = null;
+        // 1. Try authenticated GitHub contents API if token available
+        if (token) {
+          const apiContentUrl = `https://api.github.com/repos/${ghInfo.owner}/${ghInfo.repo}/contents/${fileNode.path}?ref=${branch}`;
+          const fileRes = await fetch(apiContentUrl, {
+            headers: {
+              ...headers,
+              Accept: "application/vnd.github.v3.raw",
+            },
+          });
+          if (fileRes.ok) {
+            content = await fileRes.text();
+          }
+        }
 
-        if (fileRes.ok) {
-          const content = await fileRes.text();
+        // 2. Fallback to raw.githubusercontent.com
+        if (!content) {
+          const rawUrl = `https://raw.githubusercontent.com/${ghInfo.owner}/${ghInfo.repo}/${branch}/${fileNode.path}`;
+          const fileRes = await fetch(rawUrl, { headers: token ? { Authorization: `Bearer ${token}` } : {} });
+          if (fileRes.ok) {
+            content = await fileRes.text();
+          }
+        }
+
+        if (content) {
           const ext = path.extname(fileNode.path).toLowerCase();
           const lang = ext === ".py" ? "Python" : ext === ".json" ? "JSON" : project.language || "JavaScript";
 
@@ -224,11 +250,14 @@ async function indexProjectRepository(project, customFiles = null, userId = null
   try {
     if (!project) return { success: false, message: "Project not found." };
 
-    // 1. Remove previous code vector embeddings for this specific project
-    await VectorEmbedding.deleteMany({
-      project: project._id,
-      category: "code",
+    // 1. Purge ALL previous vector embeddings for this repository from Vector DB
+    const purgeResult = await VectorEmbedding.deleteMany({
+      $or: [
+        { project: project._id },
+        { project: project._id.toString() },
+      ],
     });
+    console.log(`[RAG Indexer] Purged ${purgeResult.deletedCount} old vector chunks for ${project.name} from Vector DB.`);
 
     let indexedCount = 0;
 
@@ -250,7 +279,7 @@ async function indexProjectRepository(project, customFiles = null, userId = null
 
     // Option B: Fetch directly from GitHub repository if URL is provided
     if (indexedCount === 0 && project.repo && (project.repo.includes("github.com") || project.repo.includes("/"))) {
-      let token = null;
+      let token = process.env.GITHUB_TOKEN || null;
       if (userId) {
         const user = await User.findById(userId).select("+githubAccessToken");
         if (user?.githubAccessToken) token = user.githubAccessToken;
@@ -312,13 +341,14 @@ async function indexProjectRepository(project, customFiles = null, userId = null
       lastIndexed: new Date(),
     });
 
+    const isSuccess = totalChunks > 0;
     return {
-      success: true,
+      success: isSuccess,
       chunksCount: totalChunks,
       message:
         totalChunks > 0
           ? `Indexed ${totalChunks} real AST vector chunks for ${project.name}.`
-          : `No source files found for ${project.name}. Use 'Index Code File' to add source files or clone repository locally.`,
+          : `No source files found for ${project.name}. Could not generate vector embeddings.`,
     };
   } catch (err) {
     console.error("Project repository indexing error:", err);

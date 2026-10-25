@@ -1,10 +1,12 @@
+import { lazy, Suspense } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import LandingPage from "../pages/landing/LandingPage";
 import AuthPage from "../pages/auth/AuthPage";
-import DashboardPage from "../pages/app/DashboardPage";
 import AcceptInvitePage from "../pages/auth/AcceptInvitePage";
 import { AuthProvider } from "../context/AuthContext";
 import ProtectedRoute from "../components/ProtectedRoute";
+
+const DashboardPage = lazy(() => import("../pages/app/DashboardPage"));
 
 const AppRoutes = () => {
   return (
@@ -20,9 +22,17 @@ const AppRoutes = () => {
           <Route
             path="/app"
             element={
-              <ProtectedRoute>
-                <DashboardPage />
-              </ProtectedRoute>
+              <Suspense
+                fallback={
+                  <div className="flex min-h-screen items-center justify-center bg-dark-base text-xs font-mono text-[#a89f91]">
+                    Loading dashboard...
+                  </div>
+                }
+              >
+                <ProtectedRoute>
+                  <DashboardPage />
+                </ProtectedRoute>
+              </Suspense>
             }
           />
           <Route path="*" element={<Navigate to="/" replace />} />

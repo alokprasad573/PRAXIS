@@ -1,32 +1,8 @@
-import { useState, useCallback, useEffect } from "react";
+import { Suspense, useState, useCallback, useEffect } from "react";
 
-// Components & Views
-import {
-  Sidebar,
-  TopHeader,
-  Toast,
-  CommandPaletteModal,
-  NewWorkflowModal,
-  ConnectRepoModal,
-  OverviewView,
-  ProjectsView,
-  RepositoriesView,
-  WorkflowsView,
-  WorkflowRunsView,
-  WorkflowDetailView,
-  AgentsView,
-  AgentRunsView,
-  AgentDetailView,
-  RagView,
-  OkfView,
-  ToolsView,
-  ApprovalsView,
-  LogsView,
-  ReportsView,
-  AnalyticsView,
-  TeamView,
-  NotificationsView,
-} from "./components";
+import Sidebar from "./components/Sidebar";
+import TopHeader from "./components/TopHeader";
+import Toast from "./components/Toast";
 
 import ErrorBoundary from "../../components/ErrorBoundary";
 import { useAuth } from "../../context/useAuth";
@@ -46,6 +22,28 @@ import {
   mockRecentToolExecutions,
   mockAnalyticsData,
 } from "../../utils/dashboardData";
+
+import CommandPaletteModal from "./components/CommandPaletteModal";
+import NewWorkflowModal from "./components/NewWorkflowModal";
+import ConnectRepoModal from "./components/ConnectRepoModal";
+import OverviewView from "./components/OverviewView";
+import ProjectsView from "./components/ProjectsView";
+import RepositoriesView from "./components/RepositoriesView";
+import WorkflowsView from "./components/WorkflowsView";
+import WorkflowRunsView from "./components/WorkflowRunsView";
+import WorkflowDetailView from "./components/WorkflowDetailView";
+import AgentsView from "./components/AgentsView";
+import AgentRunsView from "./components/AgentRunsView";
+import AgentDetailView from "./components/AgentDetailView";
+import RagView from "./components/RagView";
+import OkfView from "./components/OkfView";
+import ToolsView from "./components/ToolsView";
+import ApprovalsView from "./components/ApprovalsView";
+import LogsView from "./components/LogsView";
+import ReportsView from "./components/ReportsView";
+import AnalyticsView from "./components/AnalyticsView";
+import TeamView from "./components/TeamView";
+import NotificationsView from "./components/NotificationsView";
 
 const DashboardPage = () => {
   const { user, logout } = useAuth();
@@ -70,10 +68,21 @@ const DashboardPage = () => {
   const [notifications, setNotifications] = useState([]);
   const [ragSources, setRagSources] = useState([]);
   const [okfPolicies, setOkfPolicies] = useState([]);
+
+  const safeWorkflows = Array.isArray(workflows) ? workflows : [];
+  const safeAgents = Array.isArray(agents) ? agents : [];
+  const safeApprovals = Array.isArray(approvals) ? approvals : [];
+  const safeNotifications = Array.isArray(notifications) ? notifications : [];
+
   const kpis = {
-    activeWorkflows: workflows.filter((w) => w.status === "running").length,
-    runningAgents: agents.filter((a) => a.status === "active").length,
-    completedTasks: workflows.filter((w) => w.status === "completed").length,
+    activeWorkflows: safeWorkflows.filter(
+      (w) => w && (w.status === "running" || w.status === "in_progress"),
+    ).length,
+    runningAgents: safeAgents.filter(
+      (a) => a && (a.status === "active" || a.status === "running"),
+    ).length,
+    completedTasks: safeWorkflows.filter((w) => w && w.status === "completed")
+      .length,
     tokensUsed: "12.4k",
     estimatedCost: "$0.14",
     avgDuration: "45s",
@@ -140,92 +149,85 @@ const DashboardPage = () => {
 
   // Load Real Data from MongoDB on Mount
   useEffect(() => {
-    const loadAllDashboardData = async () => {
-      try {
-        // 1. Workspace & Members
-        const wsRes = await workspaceApi.getCurrent();
-        if (wsRes?.success && wsRes.data) {
-          setWorkspace(wsRes.data);
-          if (wsRes.data.members) setTeamMembers(wsRes.data.members);
-        }
+    let isMounted = true;
 
-        // 2. Projects
-        const projRes = await projectApi.getAll();
-        if (projRes?.success && projRes.data?.length > 0) {
-          setProjects(projRes.data);
-          setActiveProject(projRes.data[0]);
-        }
-
-        // 3. Real Workflows from DB
-        const wfRes = await workflowApi.getAll();
-        if (wfRes?.success && wfRes.data) {
-          setWorkflows(wfRes.data);
-          if (wfRes.data.length > 0) {
-            setSelectedWorkflowId(wfRes.data[0].customId || wfRes.data[0]._id);
-          }
-        }
-
-        // 4. Real Pending Approvals & History
-        const [pendingAppr, historyAppr] = await Promise.allSettled([
-          approvalApi.getPending(),
-          approvalApi.getHistory(),
-        ]);
-        if (pendingAppr.status === "fulfilled" && pendingAppr.value?.success) {
-          setApprovals(pendingAppr.value.data || []);
-        }
-        if (historyAppr.status === "fulfilled" && historyAppr.value?.success) {
-          setApprovalHistory(historyAppr.value.data || []);
-        }
-
-        // 5. Real Agents & Runs
-        const [agentsRes, runsRes] = await Promise.allSettled([
-          agentApi.getLibrary(),
-          agentApi.getRuns(),
-        ]);
-        if (agentsRes.status === "fulfilled" && agentsRes.value?.success) {
-          setAgents(agentsRes.value.data || []);
-        }
-        if (runsRes.status === "fulfilled" && runsRes.value?.success) {
-          setAgentRuns(runsRes.value.data || []);
-        }
-
-        // 6. Real Notifications from DB
-        try {
-          const notifRes = await notificationApi.getAll();
-          if (notifRes?.success && Array.isArray(notifRes.data)) {
-            setNotifications(notifRes.data);
-          }
-        } catch (e) {
-          console.error("Notifications load error:", e);
-        }
-
-        // 7. Real RAG Sources & OKF Policies
-        try {
-          const [ragRes, okfRes] = await Promise.allSettled([
-            ragApi.getSources(),
-            okfApi.getPolicies(),
-          ]);
-          if (ragRes.status === "fulfilled" && ragRes.value?.success && Array.isArray(ragRes.value.data)) {
-            setRagSources(ragRes.value.data);
-          }
-          if (okfRes.status === "fulfilled" && okfRes.value?.success && Array.isArray(okfRes.value.data)) {
-            setOkfPolicies(okfRes.value.data);
-          }
-        } catch (e) {
-          console.error("RAG / OKF load error:", e);
-        }
-      } catch (err) {
-        console.error("Failed to load live platform data:", err);
-      }
+    const load = (name, request, onSuccess) => {
+      request.then(
+        (response) => {
+          if (isMounted) onSuccess(response);
+        },
+        (error) => console.error(`Failed to load ${name}:`, error),
+      );
     };
 
-    loadAllDashboardData();
+    load("workspace", workspaceApi.getCurrent(), (response) => {
+      if (response?.success && response.data) {
+        setWorkspace(response.data);
+        if (response.data.members) setTeamMembers(response.data.members);
+      }
+    });
+
+    load("projects", projectApi.getAll(), (response) => {
+      if (response?.success && response.data?.length > 0) {
+        setProjects(response.data);
+        setActiveProject(response.data[0]);
+      }
+    });
+
+    load("workflows", workflowApi.getAll(), (response) => {
+      if (response?.success && response.data) {
+        setWorkflows(response.data);
+        if (response.data.length > 0) {
+          setSelectedWorkflowId(
+            response.data[0].customId || response.data[0]._id,
+          );
+        }
+      }
+    });
+
+    load("pending approvals", approvalApi.getPending(), (response) => {
+      if (response?.success) setApprovals(response.data || []);
+    });
+
+    load("approval history", approvalApi.getHistory(), (response) => {
+      if (response?.success) setApprovalHistory(response.data || []);
+    });
+
+    load("agents", agentApi.getLibrary(), (response) => {
+      if (response?.success) setAgents(response.data || []);
+    });
+
+    load("agent runs", agentApi.getRuns(), (response) => {
+      if (response?.success) setAgentRuns(response.data || []);
+    });
+
+    load("notifications", notificationApi.getAll(), (response) => {
+      if (response?.success && Array.isArray(response.data)) {
+        setNotifications(response.data);
+      }
+    });
+
+    load("RAG sources", ragApi.getSources(), (response) => {
+      if (response?.success && Array.isArray(response.data)) {
+        setRagSources(response.data);
+      }
+    });
+
+    load("OKF policies", okfApi.getPolicies(), (response) => {
+      if (response?.success && Array.isArray(response.data)) {
+        setOkfPolicies(response.data);
+      }
+    });
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   // Live Workflow & Notification Poller (Only polls when workflows are actively progressing)
   useEffect(() => {
     const hasActiveWorkflow = workflows.some(
-      (w) => w.status === "running" || w.status === "in_progress"
+      (w) => w.status === "running" || w.status === "in_progress",
     );
 
     if (!hasActiveWorkflow) return;
@@ -239,16 +241,32 @@ const DashboardPage = () => {
           agentApi.getRuns(),
         ]);
 
-        if (wfRes.status === "fulfilled" && wfRes.value?.success && Array.isArray(wfRes.value.data)) {
+        if (
+          wfRes.status === "fulfilled" &&
+          wfRes.value?.success &&
+          Array.isArray(wfRes.value.data)
+        ) {
           setWorkflows(wfRes.value.data);
         }
-        if (apprRes.status === "fulfilled" && apprRes.value?.success && Array.isArray(apprRes.value.data)) {
+        if (
+          apprRes.status === "fulfilled" &&
+          apprRes.value?.success &&
+          Array.isArray(apprRes.value.data)
+        ) {
           setApprovals(apprRes.value.data);
         }
-        if (notifRes.status === "fulfilled" && notifRes.value?.success && Array.isArray(notifRes.value.data)) {
+        if (
+          notifRes.status === "fulfilled" &&
+          notifRes.value?.success &&
+          Array.isArray(notifRes.value.data)
+        ) {
           setNotifications(notifRes.value.data);
         }
-        if (runsRes.status === "fulfilled" && runsRes.value?.success && Array.isArray(runsRes.value.data)) {
+        if (
+          runsRes.status === "fulfilled" &&
+          runsRes.value?.success &&
+          Array.isArray(runsRes.value.data)
+        ) {
           setAgentRuns(runsRes.value.data);
         }
       } catch {
@@ -258,7 +276,6 @@ const DashboardPage = () => {
 
     return () => clearInterval(interval);
   }, [workflows]);
-
 
   // Project Switcher Handler
   const handleSelectProject = useCallback(
@@ -308,7 +325,7 @@ const DashboardPage = () => {
     async (projectId, projectName) => {
       if (
         !window.confirm(
-          `Are you sure you want to disconnect and delete "${projectName}" from this workspace?`
+          `Are you sure you want to disconnect and delete "${projectName}" from this workspace?`,
         )
       ) {
         return;
@@ -317,23 +334,27 @@ const DashboardPage = () => {
         const res = await projectApi.deleteProject(projectId);
         if (res?.success) {
           setProjects((prev) =>
-            prev.filter((p) => (p.id || p._id) !== projectId)
+            prev.filter((p) => (p.id || p._id) !== projectId),
           );
           setActiveProject((prev) =>
-            (prev?.id || prev?._id) === projectId ? null : prev
+            (prev?.id || prev?._id) === projectId ? null : prev,
           );
-          addToast(`Repository "${projectName}" removed from database`, "success");
+          addToast(
+            `Repository "${projectName}" removed from database`,
+            "success",
+          );
         } else {
           addToast(res.message || "Failed to delete repository", "error");
         }
       } catch (err) {
         addToast(
-          err.response?.data?.message || "Error deleting repository from database",
-          "error"
+          err.response?.data?.message ||
+            "Error deleting repository from database",
+          "error",
         );
       }
     },
-    [addToast]
+    [addToast],
   );
 
   // Approval Gate Handlers (Persisted in DB)
@@ -343,10 +364,15 @@ const DashboardPage = () => {
         const res = await approvalApi.decide(id, "approve");
         if (res?.success) {
           setApprovals((prev) =>
-            prev.filter((a) => (a._id || a.approvalId) !== id && a.approvalId !== id)
+            prev.filter(
+              (a) => (a._id || a.approvalId) !== id && a.approvalId !== id,
+            ),
           );
           if (res.data) setApprovalHistory((prev) => [res.data, ...prev]);
-          addToast(`Approval granted for ${id}. Pipeline proceeding.`, "success");
+          addToast(
+            `Approval granted for ${id}. Pipeline proceeding.`,
+            "success",
+          );
         } else {
           addToast(res.message || "Failed to record approval", "error");
         }
@@ -363,7 +389,9 @@ const DashboardPage = () => {
         const res = await approvalApi.decide(id, "reject");
         if (res?.success) {
           setApprovals((prev) =>
-            prev.filter((a) => (a._id || a.approvalId) !== id && a.approvalId !== id)
+            prev.filter(
+              (a) => (a._id || a.approvalId) !== id && a.approvalId !== id,
+            ),
           );
           if (res.data) setApprovalHistory((prev) => [res.data, ...prev]);
           addToast(`Approval rejected for ${id}. Step aborted.`, "warning");
@@ -440,8 +468,12 @@ const DashboardPage = () => {
       case "workflow-runs":
         return (
           <WorkflowRunsView
-            activeRuns={workflows.filter((w) => w.status === "running" || w.status === "in_progress")}
-            historicalRuns={workflows.filter((w) => w.status !== "running" && w.status !== "in_progress")}
+            activeRuns={workflows.filter(
+              (w) => w.status === "running" || w.status === "in_progress",
+            )}
+            historicalRuns={workflows.filter(
+              (w) => w.status !== "running" && w.status !== "in_progress",
+            )}
             workflows={workflows}
             onNavigate={handleNavigate}
             onOpenNewWorkflow={() => setIsNewWorkflowOpen(true)}
@@ -493,7 +525,39 @@ const DashboardPage = () => {
             activeProject={activeProject}
             onSelectProject={setActiveProject}
             onToast={addToast}
-            onOpenConnectModal={() => setIsConnectRepoOpen(true)}
+            onUpdateProject={(updatedProject) => {
+              if (!updatedProject) return;
+              const uId = updatedProject.id || updatedProject._id;
+              setProjects((prev) =>
+                prev.map((p) => {
+                  const pid = p.id || p._id;
+                  if (pid === uId) {
+                    return {
+                      ...p,
+                      ...updatedProject,
+                      ragChunks:
+                        updatedProject.ragChunks !== undefined
+                          ? updatedProject.ragChunks
+                          : p.ragChunks,
+                    };
+                  }
+                  return p;
+                }),
+              );
+              if (
+                activeProject &&
+                (activeProject.id === uId || activeProject._id === uId)
+              ) {
+                setActiveProject((prev) => ({
+                  ...prev,
+                  ...updatedProject,
+                  ragChunks:
+                    updatedProject.ragChunks !== undefined
+                      ? updatedProject.ragChunks
+                      : prev.ragChunks,
+                }));
+              }
+            }}
           />
         );
 
@@ -543,7 +607,14 @@ const DashboardPage = () => {
         );
 
       case "team":
-        return <TeamView workspace={workspace} members={teamMembers} setMembers={setTeamMembers} onToast={addToast} />;
+        return (
+          <TeamView
+            workspace={workspace}
+            members={teamMembers}
+            setMembers={setTeamMembers}
+            onToast={addToast}
+          />
+        );
 
       case "notifications":
         return (
@@ -554,7 +625,7 @@ const DashboardPage = () => {
           />
         );
 
-default:
+      default:
         return (
           <OverviewView
             kpis={kpis}
@@ -567,12 +638,13 @@ default:
     }
   };
 
-  const pendingApprovalsCount = approvals.length;
-  const unreadNotificationsCount = notifications.filter((n) => n.unread).length;
+  const pendingApprovalsCount = safeApprovals.length;
+  const unreadNotificationsCount = safeNotifications.filter(
+    (n) => n && n.unread,
+  ).length;
 
   return (
     <div className="bg-dark-base text-cream-100 font-sans antialiased h-screen overflow-hidden flex selection:bg-orange-500/30 selection:text-orange-200 relative">
-
       {/* Mobile Backdrop Overlay */}
       {mobileMenuOpen && (
         <div
@@ -620,8 +692,19 @@ default:
           id="main-content"
           className="flex-1 overflow-y-auto custom-scrollbar relative p-4 sm:p-6"
         >
-          <ErrorBoundary key={activePage} onReset={() => setActivePage("overview")}>
-            {renderCurrentView()}
+          <ErrorBoundary
+            key={activePage}
+            onReset={() => setActivePage("overview")}
+          >
+            <Suspense
+              fallback={
+                <div className="flex min-h-48 items-center justify-center text-xs font-mono text-[#a89f91]">
+                  Loading view...
+                </div>
+              }
+            >
+              {renderCurrentView()}
+            </Suspense>
           </ErrorBoundary>
         </main>
       </div>
@@ -631,28 +714,38 @@ default:
 
       {/* Command Palette Modal (⌘K) */}
       {isCommandPaletteOpen && (
-        <CommandPaletteModal
-          isOpen={isCommandPaletteOpen}
-          onClose={() => setIsCommandPaletteOpen(false)}
-          onNavigate={handleNavigate}
-          onOpenNewWorkflow={() => setIsNewWorkflowOpen(true)}
-        />
+        <Suspense fallback={null}>
+          <CommandPaletteModal
+            isOpen={isCommandPaletteOpen}
+            onClose={() => setIsCommandPaletteOpen(false)}
+            onNavigate={handleNavigate}
+            onOpenNewWorkflow={() => setIsNewWorkflowOpen(true)}
+          />
+        </Suspense>
       )}
 
       {/* Launch New Workflow Modal */}
-      <NewWorkflowModal
-        isOpen={isNewWorkflowOpen}
-        onClose={() => setIsNewWorkflowOpen(false)}
-        onLaunchWorkflow={handleLaunchWorkflow}
-        projects={projects}
-      />
+      {isNewWorkflowOpen && (
+        <Suspense fallback={null}>
+          <NewWorkflowModal
+            isOpen={isNewWorkflowOpen}
+            onClose={() => setIsNewWorkflowOpen(false)}
+            onLaunchWorkflow={handleLaunchWorkflow}
+            projects={projects}
+          />
+        </Suspense>
+      )}
 
       {/* Connect Repository Modal */}
-      <ConnectRepoModal
-        isOpen={isConnectRepoOpen}
-        onClose={() => setIsConnectRepoOpen(false)}
-        onAddProject={handleConnectRepo}
-      />
+      {isConnectRepoOpen && (
+        <Suspense fallback={null}>
+          <ConnectRepoModal
+            isOpen={isConnectRepoOpen}
+            onClose={() => setIsConnectRepoOpen(false)}
+            onAddProject={handleConnectRepo}
+          />
+        </Suspense>
+      )}
     </div>
   );
 };

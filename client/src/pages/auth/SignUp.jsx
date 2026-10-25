@@ -73,7 +73,7 @@ const SignUp = () => {
     } catch (err) {
       const message =
         err.response?.data?.message ||
-        "Cannot connect to backend server. Make sure server is running on port 8000.";
+        "Cannot connect to backend server. Make sure server is running on port 8080.";
       setErrorMsg(message);
     } finally {
       setIsLoading(false);

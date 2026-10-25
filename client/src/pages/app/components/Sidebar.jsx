@@ -36,13 +36,13 @@ const Sidebar = ({
   const [projectSwitcherOpen, setProjectSwitcherOpen] = useState(false);
   const [projectSearch, setProjectSearch] = useState("");
 
-  const filteredProjects = projects.filter((p) => {
-    const q = projectSearch.toLowerCase();
-    return (
-      p.name.toLowerCase().includes(q) ||
-      (p.language && p.language.toLowerCase().includes(q)) ||
-      (p.repo && p.repo.toLowerCase().includes(q))
-    );
+  const filteredProjects = (Array.isArray(projects) ? projects : []).filter((p) => {
+    if (!p) return false;
+    const q = (projectSearch || "").toLowerCase();
+    const name = (p.name || "").toLowerCase();
+    const lang = (p.language || "").toLowerCase();
+    const repo = (p.repo || "").toLowerCase();
+    return name.includes(q) || lang.includes(q) || repo.includes(q);
   });
 
   const navItem = (id, label, Icon, badge = null) => {
@@ -280,11 +280,13 @@ const Sidebar = ({
                     No projects found
                   </div>
                 ) : (
-                  filteredProjects.map((p) => {
-                    const isSelected = activeProject && activeProject.id === p.id;
+                  filteredProjects.map((p, idx) => {
+                    const isSelected =
+                      (activeProject?.id && p.id && activeProject.id === p.id) ||
+                      (activeProject?._id && p._id && activeProject._id === p._id);
                     return (
                       <button
-                        key={p.id}
+                        key={p.id || p._id || `proj-${idx}`}
                         type="button"
                         onClick={() => {
                           onSelectProject(p);

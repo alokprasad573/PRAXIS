@@ -11,7 +11,7 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // 1. Logout function (Memoized with useCallback)
+  // 1. Logout function
   const logout = useCallback(async () => {
     try {
       await authApi.logout();
@@ -28,13 +28,14 @@ export const AuthProvider = ({ children }) => {
       sessionStorage.removeItem("praxis_user");
       setIsAuthenticated(false);
       setUser(null);
+      setLoading(false);
       window.location.href = "/";
     }
   }, []);
 
-  // 2. Initial check on app load (Page refresh hone par check karega)
+  // 2. Initial check on app load
   useEffect(() => {
-    const initializeAuth = async () => {
+    const initializeAuth = () => {
       const token =
         localStorage.getItem("token") ||
         localStorage.getItem("praxis_token") ||
@@ -55,34 +56,39 @@ export const AuthProvider = ({ children }) => {
             setUser(null);
           }
         }
+        // Unblock UI immediately so dashboard renders without waiting for network round-trip
+        setLoading(false);
 
-        // Background me token verify karega live backend se
-        try {
-          const res = await authApi.getMe();
-          if (res?.success && res?.data?.user) {
-            setUser(res.data.user);
-            setIsAuthenticated(true);
-            const storage = sessionStorage.getItem("token")
-              ? sessionStorage
-              : localStorage;
-            storage.setItem("user", JSON.stringify(res.data.user));
-          }
-        } catch (err) {
-          if (err.response?.status === 401) {
-            logout();
-          }
-        }
+        // Verify token in background against live backend
+        authApi
+          .getMe()
+          .then((res) => {
+            if (res?.success && res?.data?.user) {
+              setUser(res.data.user);
+              setIsAuthenticated(true);
+              const storage = sessionStorage.getItem("token")
+                ? sessionStorage
+                : localStorage;
+              storage.setItem("user", JSON.stringify(res.data.user));
+            }
+          })
+          .catch((err) => {
+            // Only force logout on genuine 401 Invalid Token, not transient network errors
+            if (err.response?.status === 401) {
+              logout();
+            }
+          });
       } else {
         setIsAuthenticated(false);
         setUser(null);
+        setLoading(false);
       }
-      setLoading(false);
     };
 
     initializeAuth();
   }, [logout]);
 
-  // 3. Login function (Memoized with useCallback)
+  // 3. Login function
   const login = useCallback((token, userData, remember = true) => {
     localStorage.removeItem("token");
     localStorage.removeItem("praxis_token");
@@ -100,6 +106,7 @@ export const AuthProvider = ({ children }) => {
       setUser(userData);
     }
     setIsAuthenticated(true);
+    setLoading(false);
   }, []);
 
   // 4. Update user locally (Profile edit)

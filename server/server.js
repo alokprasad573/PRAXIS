@@ -15,11 +15,15 @@ const okfRoutes = require("./routes/okf.routes");
 const { atlasConnect } = require("./config/db");
 
 // Global Middlewares
+const clientUrlClean = process.env.CLIENT_URL
+  ? process.env.CLIENT_URL.replace(/\/+$/, "")
+  : null;
+
 const allowedOrigins = [
   "http://localhost:5173",
   "http://127.0.0.1:5173",
   "https://zfd3vwsk-5173.inc1.devtunnels.ms",
-  process.env.CLIENT_URL,
+  clientUrlClean,
 ].filter(Boolean);
 
 const PORT = process.env.PORT || 8080;
@@ -27,7 +31,13 @@ const PORT = process.env.PORT || 8080;
 app.use(
   cors({
     origin: (origin, callback) => {
-      if (!origin || allowedOrigins.includes(origin)) {
+      if (
+        !origin ||
+        allowedOrigins.includes(origin) ||
+        origin.endsWith(".devtunnels.ms") ||
+        /^http:\/\/localhost:\d+$/.test(origin) ||
+        /^http:\/\/127\.0\.0\.1:\d+$/.test(origin)
+      ) {
         callback(null, true);
       } else {
         callback(new Error("Not allowed by CORS"));
@@ -35,7 +45,12 @@ app.use(
     },
     credentials: true,
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization", "Accept"],
+    allowedHeaders: [
+      "Content-Type",
+      "Authorization",
+      "Accept",
+      "X-Tunnel-Skip-Anti-Phishing-Page",
+    ],
   }),
 );
 
